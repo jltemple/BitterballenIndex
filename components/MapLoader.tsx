@@ -1,0 +1,37 @@
+"use client";
+
+import dynamic from "next/dynamic";
+
+const AmsterdamMap = dynamic(() => import("./AmsterdamMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[65vh] bg-[#10161d] rounded-xl flex items-center justify-center">
+      <p className="text-neutral-400">Loading map…</p>
+    </div>
+  ),
+});
+
+interface NeighborhoodPrice {
+  neighborhood: string;
+  avg_price_cents: number;
+  bar_count: number;
+}
+
+interface BarMarker {
+  id: string;
+  name: string;
+  neighborhood: string | null;
+  lat: number;
+  lng: number;
+  latest_price_cents: number | null;
+  latest_quantity: number | null;
+}
+
+interface Props {
+  heatmapData: NeighborhoodPrice[];
+  bars: BarMarker[];
+}
+
+export default function MapLoader({ heatmapData, bars }: Props) {
+  return <AmsterdamMap heatmapData={heatmapData} bars={bars} />;
+}

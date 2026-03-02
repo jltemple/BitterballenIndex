@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+:root {
+  --bg-body:    #f9fafb;
+  --bg-card:    #ffffff;
+  --bg-surface: #f3f4f6;
+  --bg-input:   #ffffff;
+}
+
+body {
+  background-color: var(--bg-body);
+  color: #111827;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
