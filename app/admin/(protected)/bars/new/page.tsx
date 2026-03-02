@@ -28,7 +28,7 @@ export default function NewBarPage() {
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const searchTimer = useRef<ReturnType<typeof setTimeout>>();
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
