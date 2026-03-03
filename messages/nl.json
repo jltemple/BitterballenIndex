@@ -3,19 +3,19 @@
     "brand": "bitterballen index",
     "navBars": "cafés",
     "navMap": "kaart",
-    "footer": "bitterballen index amsterdam — snackprijzen bijhouden sinds 2025"
+    "footer": "bitterballen index amsterdam — snackprijzen volgen sinds 2025"
   },
   "home": {
     "badge": "amsterdam · sinds 2025",
     "title": "bitterballen index",
-    "subtitle": "de prijs van bitterballen bijhouden in cafés door amsterdam — zodat je altijd de beste deal weet.",
+    "subtitle": "de prijs van bitterballen bijhouden in cafés in heel amsterdam — zodat je altijd de beste deal weet.",
     "browseBars": "bekijk cafés",
     "viewMap": "bekijk kaart",
-    "barsTracked": "cafés bijgehouden",
+    "barsTracked": "cafés in de index",
     "cityAverage": "stadsgemiddelde",
     "cheapest": "goedkoopste",
     "mostExpensive": "duurste",
-    "noBarsYet": "nog geen cafés bijgehouden. voeg ze toe via het <link>beheerpaneel</link>."
+    "noBarsYet": "nog geen cafés in de index. voeg ze toe via het <link>beheerpaneel</link>."
   },
   "bars": {
     "title": "alle cafés",
