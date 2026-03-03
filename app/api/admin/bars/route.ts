@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase";
 import { barCell, neighborhoodFromLatLng } from "@/lib/h3-server";
@@ -34,6 +35,10 @@ export async function POST(req: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  revalidatePath("/bars");
+  revalidatePath(`/bars/${data.id}`);
+  revalidatePath("/map");
 
   return NextResponse.json(data, { status: 201 });
 }

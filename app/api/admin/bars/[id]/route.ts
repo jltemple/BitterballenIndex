@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase";
 import { barCell, neighborhoodFromLatLng } from "@/lib/h3-server";
@@ -33,6 +34,10 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  revalidatePath("/bars");
+  revalidatePath(`/bars/${id}`);
+  revalidatePath("/map");
+
   return NextResponse.json(data);
 }
 
@@ -50,6 +55,10 @@ export async function DELETE(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  revalidatePath("/bars");
+  revalidatePath(`/bars/${id}`);
+  revalidatePath("/map");
 
   return NextResponse.json({ ok: true });
 }
