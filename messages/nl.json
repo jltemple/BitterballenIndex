@@ -1,0 +1,73 @@
+{
+  "layout": {
+    "brand": "bitterballen index",
+    "navBars": "cafés",
+    "navMap": "kaart",
+    "footer": "bitterballen index amsterdam — snackprijzen bijhouden sinds 2025"
+  },
+  "home": {
+    "badge": "amsterdam · sinds 2025",
+    "title": "bitterballen index",
+    "subtitle": "de prijs van bitterballen bijhouden in cafés door amsterdam — zodat je altijd de beste deal weet.",
+    "browseBars": "bekijk cafés",
+    "viewMap": "bekijk kaart",
+    "barsTracked": "cafés bijgehouden",
+    "cityAverage": "stadsgemiddelde",
+    "cheapest": "goedkoopste",
+    "mostExpensive": "duurste",
+    "noBarsYet": "nog geen cafés bijgehouden. voeg ze toe via het <link>beheerpaneel</link>."
+  },
+  "bars": {
+    "title": "alle cafés",
+    "noBarsYet": "nog geen cafés. voeg ze toe via het beheerpaneel.",
+    "colBar": "café",
+    "colNeighbourhood": "buurt",
+    "colPerPiece": "per stuk",
+    "colRecorded": "geregistreerd"
+  },
+  "barDetail": {
+    "backLink": "← alle cafés",
+    "currentPrice": "huidige prijs",
+    "perPieceSuffix": "/st",
+    "forQuantity": "€{price} voor {quantity}",
+    "recordedOn": "geregistreerd op {date}",
+    "priceHistory": "prijsgeschiedenis",
+    "oneEntryHint": "slechts één prijsvermelding — voeg meer toe voor een overzicht.",
+    "noPricesYet": "nog geen prijzen geregistreerd.",
+    "allEntries": "alle vermeldingen",
+    "colDate": "datum",
+    "colPerPiece": "per stuk",
+    "colTotal": "totaal",
+    "colNotes": "notities",
+    "website": "website →"
+  },
+  "map": {
+    "title": "amsterdam bitterballen kaart",
+    "description": "buurtgemiddelden (choropleet) en individuele cafés (cirkels) — beide met prijs per stuk.",
+    "emptyState": "nog geen prijsdata — voeg cafés en prijzen toe via het beheerpaneel om de kaart te zien.",
+    "legendTitle": "prijs per stuk",
+    "legendTier1": "< €8 voor 6",
+    "legendTier2": "€8 – €9 voor 6",
+    "legendTier3": "> €9 voor 6",
+    "legendNoData": "geen data",
+    "barSingular": "café",
+    "barPlural": "cafés",
+    "noBarsRecorded": "geen cafés geregistreerd",
+    "clickHint": "klik op een buurt om de cafés te zien",
+    "clickDeselect": "klik nogmaals om te deselecteren",
+    "noDataTooltip": "geen data · klik om te verkennen",
+    "tooltipAvg": "gem.",
+    "loadingNeighbourhoods": "buurten laden…",
+    "perPiece": "per stuk"
+  },
+  "admin": {
+    "loginTitle": "admin login",
+    "loginSubtitle": "bitterballen index",
+    "passwordLabel": "wachtwoord",
+    "passwordPlaceholder": "voer het beheerderswachtwoord in",
+    "loginButton": "inloggen",
+    "loggingIn": "inloggen…",
+    "invalidPassword": "ongeldig wachtwoord",
+    "logout": "uitloggen"
+  }
+}

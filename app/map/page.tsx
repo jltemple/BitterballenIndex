@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import MapLoader from "@/components/MapLoader";
+import { getTranslations } from "next-intl/server";
 
 async function getMapData() {
   const { data: prices } = await supabase
@@ -60,22 +61,19 @@ async function getMapData() {
 
 export default async function MapPage() {
   const { heatmapData, barMarkers } = await getMapData();
+  const t = await getTranslations("map");
 
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">amsterdam bitterballen map</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          neighbourhood averages (choropleth) and individual bars (circles) — both showing per-piece price.
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
+        <p className="text-sm text-gray-500 mt-1">{t("description")}</p>
       </div>
 
       <MapLoader heatmapData={heatmapData} bars={barMarkers} />
 
       {heatmapData.length === 0 && (
-        <p className="text-sm text-center text-gray-500">
-          no price data yet — add bars and prices via the admin panel to see the heatmap.
-        </p>
+        <p className="text-sm text-center text-gray-500">{t("emptyState")}</p>
       )}
     </div>
   );

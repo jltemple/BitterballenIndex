@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useTranslations } from "next-intl";
 
 interface Price {
   id: string;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function PriceHistoryChart({ prices }: Props) {
+  const t = useTranslations("map");
   const data = prices.map((p) => ({
     date: new Date(p.recorded_at).toLocaleDateString("nl-NL", { day: "numeric", month: "short" }),
     price: p.price_cents / p.quantity / 100,
@@ -51,7 +53,7 @@ export default function PriceHistoryChart({ prices }: Props) {
             domain={["auto", "auto"]}
           />
           <Tooltip
-            formatter={(value: number | undefined) => [value != null ? `€${value.toFixed(2)}/pc` : "—", "per piece"]}
+            formatter={(value: number | undefined) => [value != null ? `€${value.toFixed(2)}/pc` : "—", t("perPiece")]}
             labelFormatter={(label) => label}
             contentStyle={{
               backgroundColor: "#ffffff",

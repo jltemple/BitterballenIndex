@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, GeoJSON, CircleMarker, Tooltip } from "react-l
 import type { Feature, FeatureCollection } from "geojson";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useTranslations } from "next-intl";
 
 interface NeighborhoodPrice {
   neighborhood: string;
@@ -37,16 +38,19 @@ function getPriceColor(perPieceCents: number | undefined): string {
   return "#ef4444";                             // > €9.00 for 6
 }
 
-const LEGEND = [
-  { color: "#22c55e", label: "< €8 for 6" },
-  { color: "#eab308", label: "€8 – €9 for 6" },
-  { color: "#ef4444", label: "> €9 for 6" },
-  { color: "#d1d5db", label: "no data" },
-];
+const LEGEND_COLORS = ["#22c55e", "#eab308", "#ef4444", "#d1d5db"] as const;
 
 export default function AmsterdamMap({ heatmapData, bars }: Props) {
+  const t = useTranslations("map");
   const [neighborhoodGeoJson, setNeighborhoodGeoJson] = useState<FeatureCollection | null>(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
+
+  const legend = [
+    { color: LEGEND_COLORS[0], label: t("legendTier1") },
+    { color: LEGEND_COLORS[1], label: t("legendTier2") },
+    { color: LEGEND_COLORS[2], label: t("legendTier3") },
+    { color: LEGEND_COLORS[3], label: t("legendNoData") },
+  ];
 
   useEffect(() => {
     fetch("/amsterdam-neighborhoods.geojson")
@@ -76,14 +80,15 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
     const name: string = feature.properties?.naam ?? "Unknown";
     const data = priceByNeighborhood.get(name.toLowerCase());
     const barCount = data?.bar_count ?? 0;
+    const barWord = t(barCount !== 1 ? "barPlural" : "barSingular");
     const priceStr = data
-      ? `€${(data.avg_price_cents / 100).toFixed(2)}/pc avg · ${barCount} bar${barCount !== 1 ? "s" : ""}`
-      : "No data · click to explore";
+      ? `€${(data.avg_price_cents / 100).toFixed(2)}/pc ${t("tooltipAvg")} · ${barCount} ${barWord}`
+      : t("noDataTooltip");
     (layer as L.Path).bindTooltip(`<strong>${name}</strong><br/>${priceStr}`, { sticky: true });
     layer.on("click", () => {
       setSelectedNeighborhood((prev) => (prev === name ? null : name));
     });
-  }, [priceByNeighborhood]);
+  }, [priceByNeighborhood, t]);
 
   // Selected neighbourhood as its own FeatureCollection — rendered in a separate top layer
   const selectedFeature = useMemo((): FeatureCollection | null => {
@@ -109,9 +114,9 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
     <div className="relative">
       {/* Legend */}
       <div className="absolute top-4 right-4 z-[1000] bg-white rounded-xl border border-gray-200 p-3 text-xs space-y-1.5 shadow-md">
-        <p className="font-semibold text-gray-500 tracking-wide mb-2 text-[10px]">price per piece</p>
-        {LEGEND.map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-2">
+        <p className="font-semibold text-gray-500 tracking-wide mb-2 text-[10px]">{t("legendTitle")}</p>
+        {legend.map(({ color, label }) => (
+          <div key={color} className="flex items-center gap-2">
             <span className="w-3.5 h-3.5 rounded-sm inline-block shrink-0" style={{ backgroundColor: color }} />
             <span className="text-gray-600">{label}</span>
           </div>
@@ -121,16 +126,16 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
       {/* Selection status / hint */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
         {selectedNeighborhood ? (
-          <div className="bg-white border border-orange-300 text-orange-500 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md">
+          <div className="bg-white border border-orange-300 text-orange-500 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md whitespace-nowrap">
             {selectedNeighborhood}
             {visibleBars.length > 0
-              ? ` · ${visibleBars.length} bar${visibleBars.length !== 1 ? "s" : ""}`
-              : " · no bars recorded"}
-            <span className="text-gray-400 font-normal ml-1.5">— click again to deselect</span>
+              ? ` · ${visibleBars.length} ${t(visibleBars.length !== 1 ? "barPlural" : "barSingular")}`
+              : ` · ${t("noBarsRecorded")}`}
+            <span className="text-gray-400 font-normal ml-1.5">— {t("clickDeselect")}</span>
           </div>
         ) : (
           <div className="bg-white/90 border border-gray-200 text-gray-400 text-xs px-3 py-1.5 rounded-full shadow">
-            click a neighbourhood to see its bars
+            {t("clickHint")}
           </div>
         )}
       </div>
@@ -186,7 +191,7 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
           const priceStr =
             perPieceCents != null
               ? `€${(perPieceCents / 100).toFixed(2)}/pc`
-              : "No price recorded";
+              : t("legendNoData");
 
           return (
             <CircleMarker
@@ -212,7 +217,7 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
 
       {!neighborhoodGeoJson && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80 rounded-xl">
-          <p className="text-gray-500">loading neighbourhoods…</p>
+          <p className="text-gray-500">{t("loadingNeighbourhoods")}</p>
         </div>
       )}
     </div>

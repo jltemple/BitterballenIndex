@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import PriceHistoryChart from "@/components/PriceHistoryChart";
+import { getTranslations } from "next-intl/server";
 
 async function getBarWithPrices(id: string) {
   const { data: bar } = await supabase.from("bars").select("*").eq("id", id).single();
@@ -26,13 +27,15 @@ export default async function BarDetailPage({
 
   if (!bar) notFound();
 
+  const t = await getTranslations("barDetail");
+
   const latest = bar.prices[bar.prices.length - 1];
   const latestPerPiece = latest ? latest.price_cents / latest.quantity / 100 : null;
 
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/bars" prefetch={false} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← all bars</Link>
+        <Link href="/bars" prefetch={false} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{t("backLink")}</Link>
         <h1 className="text-2xl font-bold text-gray-900 mt-2">{bar.name}</h1>
         {bar.address && <p className="text-gray-500 mt-1">{bar.address}</p>}
         <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -43,7 +46,7 @@ export default async function BarDetailPage({
           )}
           {bar.website && (
             <a href={bar.website} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-400 hover:text-orange-500 transition-colors">
-              website →
+              {t("website")}
             </a>
           )}
         </div>
@@ -53,16 +56,16 @@ export default async function BarDetailPage({
       {latest && latestPerPiece !== null && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center justify-between shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 tracking-wide mb-2">current price</p>
+            <p className="text-xs font-semibold text-gray-500 tracking-wide mb-2">{t("currentPrice")}</p>
             <p className="text-4xl font-extrabold text-orange-500">
               €{latestPerPiece.toFixed(2)}
-              <span className="text-2xl font-semibold text-orange-400">/pc</span>
+              <span className="text-2xl font-semibold text-orange-400">{t("perPieceSuffix")}</span>
             </p>
             <p className="text-sm text-gray-400 mt-1">
-              €{(latest.price_cents / 100).toFixed(2)} for {latest.quantity}
+              {t("forQuantity", { price: (latest.price_cents / 100).toFixed(2), quantity: latest.quantity })}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Recorded {new Date(latest.recorded_at).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
+              {t("recordedOn", { date: new Date(latest.recorded_at).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" }) })}
             </p>
           </div>
           <div className="text-5xl opacity-80">🍡</div>
@@ -72,27 +75,27 @@ export default async function BarDetailPage({
       {/* Price history chart */}
       {bar.prices.length >= 2 ? (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">price history</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">{t("priceHistory")}</h2>
           <PriceHistoryChart prices={bar.prices} />
         </div>
       ) : bar.prices.length === 1 ? (
-        <p className="text-sm text-gray-500">only one price entry — add more to see history.</p>
+        <p className="text-sm text-gray-500">{t("oneEntryHint")}</p>
       ) : (
-        <p className="text-sm text-gray-500">no prices recorded yet.</p>
+        <p className="text-sm text-gray-500">{t("noPricesYet")}</p>
       )}
 
       {/* All prices table */}
       {bar.prices.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">all entries</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">{t("allEntries")}</h2>
           <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-500 text-xs tracking-wide">
                 <tr>
-                  <th className="text-left px-4 py-3 font-semibold">date</th>
-                  <th className="text-right px-4 py-3 font-semibold">per piece</th>
-                  <th className="text-right px-4 py-3 font-semibold hidden sm:table-cell">total</th>
-                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">notes</th>
+                  <th className="text-left px-4 py-3 font-semibold">{t("colDate")}</th>
+                  <th className="text-right px-4 py-3 font-semibold">{t("colPerPiece")}</th>
+                  <th className="text-right px-4 py-3 font-semibold hidden sm:table-cell">{t("colTotal")}</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">{t("colNotes")}</th>
                 </tr>
               </thead>
               <tbody>

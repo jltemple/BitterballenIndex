@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getTranslations } from "next-intl/server";
 
 async function getBarsWithLatestPrice() {
   const { data: bars } = await supabase.from("bars").select("*").order("name");
@@ -46,22 +47,23 @@ function formatDate(iso: string | null) {
 
 export default async function BarsPage() {
   const bars = await getBarsWithLatestPrice();
+  const t = await getTranslations("bars");
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">all bars</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{t("title")}</h1>
 
       {bars.length === 0 ? (
-        <p className="text-gray-500">no bars yet. add some via the admin panel.</p>
+        <p className="text-gray-500">{t("noBarsYet")}</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500 text-xs tracking-wide">
               <tr>
-                <th className="text-left px-4 py-3 font-semibold">bar</th>
-                <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">neighbourhood</th>
-                <th className="text-right px-4 py-3 font-semibold">per piece</th>
-                <th className="text-right px-4 py-3 font-semibold hidden md:table-cell">recorded</th>
+                <th className="text-left px-4 py-3 font-semibold">{t("colBar")}</th>
+                <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">{t("colNeighbourhood")}</th>
+                <th className="text-right px-4 py-3 font-semibold">{t("colPerPiece")}</th>
+                <th className="text-right px-4 py-3 font-semibold hidden md:table-cell">{t("colRecorded")}</th>
               </tr>
             </thead>
             <tbody>

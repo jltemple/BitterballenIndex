@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getTranslations } from "next-intl/server";
 
 async function getStats() {
   const { data: prices } = await supabase
@@ -48,19 +49,20 @@ function formatPrice(cents: number) {
 
 export default async function HomePage() {
   const stats = await getStats();
+  const t = await getTranslations("home");
 
   return (
     <div className="space-y-12">
       {/* Hero */}
       <div className="text-center py-14">
         <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 text-orange-600 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
-          amsterdam · since 2025
+          {t("badge")}
         </div>
         <h1 className="text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
-          bitterballen index
+          {t("title")}
         </h1>
         <p className="text-lg text-gray-500 max-w-xl mx-auto leading-relaxed">
-          tracking the price of bitterballen at bars across amsterdam — so you always know where to get the best deal.
+          {t("subtitle")}
         </p>
         <div className="mt-8 flex justify-center gap-3">
           <Link
@@ -68,14 +70,14 @@ export default async function HomePage() {
             prefetch={false}
             className="bg-orange-500 text-white px-6 py-2.5 rounded-full font-semibold shadow-sm hover:bg-orange-600 hover:-translate-y-px active:scale-95 transition-all"
           >
-            browse bars
+            {t("browseBars")}
           </Link>
           <Link
             href="/map"
             prefetch={false}
             className="border border-gray-300 text-gray-700 px-6 py-2.5 rounded-full font-semibold hover:border-orange-500 hover:bg-orange-50 transition-all"
           >
-            view map
+            {t("viewMap")}
           </Link>
         </div>
       </div>
@@ -83,16 +85,16 @@ export default async function HomePage() {
       {/* Stats */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="bars tracked" value={stats.barCount.toString()} />
-          <StatCard label="city average" value={stats.cityAvg ? formatPrice(stats.cityAvg) : "—"} />
+          <StatCard label={t("barsTracked")} value={stats.barCount.toString()} />
+          <StatCard label={t("cityAverage")} value={stats.cityAvg ? formatPrice(stats.cityAvg) : "—"} />
           <StatCard
-            label="cheapest"
+            label={t("cheapest")}
             value={stats.cheapest ? formatPrice(stats.cheapest.per_piece_cents) : "—"}
             sub={stats.cheapest?.name}
             href={stats.cheapest ? `/bars/${stats.cheapest.id}` : undefined}
           />
           <StatCard
-            label="most expensive"
+            label={t("mostExpensive")}
             value={stats.mostExpensive ? formatPrice(stats.mostExpensive.per_piece_cents) : "—"}
             sub={stats.mostExpensive?.name}
             href={stats.mostExpensive ? `/bars/${stats.mostExpensive.id}` : undefined}
@@ -102,8 +104,13 @@ export default async function HomePage() {
 
       {stats && stats.barCount === 0 && (
         <p className="text-center text-gray-500 py-8">
-          no bars tracked yet. add some via the{" "}
-          <Link href="/admin" className="text-orange-500 hover:underline">admin panel</Link>.
+          {t.rich("noBarsYet", {
+            link: (chunks) => (
+              <Link href="/admin" className="text-orange-500 hover:underline">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       )}
     </div>

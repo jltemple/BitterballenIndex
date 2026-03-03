@@ -1,8 +1,10 @@
+import createNextIntlPlugin from "next-intl/plugin";
 import type { NextConfig } from "next";
 
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+
 const nextConfig: NextConfig = {
-  // Leaflet requires transpiling for Next.js
   transpilePackages: [],
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

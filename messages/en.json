@@ -1,0 +1,73 @@
+{
+  "layout": {
+    "brand": "bitterballen index",
+    "navBars": "bars",
+    "navMap": "map",
+    "footer": "bitterballen index amsterdam — tracking snack prices since 2025"
+  },
+  "home": {
+    "badge": "amsterdam · since 2025",
+    "title": "bitterballen index",
+    "subtitle": "tracking the price of bitterballen at bars across amsterdam — so you always know where to get the best deal.",
+    "browseBars": "browse bars",
+    "viewMap": "view map",
+    "barsTracked": "bars tracked",
+    "cityAverage": "city average",
+    "cheapest": "cheapest",
+    "mostExpensive": "most expensive",
+    "noBarsYet": "no bars tracked yet. add some via the <link>admin panel</link>."
+  },
+  "bars": {
+    "title": "all bars",
+    "noBarsYet": "no bars yet. add some via the admin panel.",
+    "colBar": "bar",
+    "colNeighbourhood": "neighbourhood",
+    "colPerPiece": "per piece",
+    "colRecorded": "recorded"
+  },
+  "barDetail": {
+    "backLink": "← all bars",
+    "currentPrice": "current price",
+    "perPieceSuffix": "/pc",
+    "forQuantity": "€{price} for {quantity}",
+    "recordedOn": "recorded {date}",
+    "priceHistory": "price history",
+    "oneEntryHint": "only one price entry — add more to see history.",
+    "noPricesYet": "no prices recorded yet.",
+    "allEntries": "all entries",
+    "colDate": "date",
+    "colPerPiece": "per piece",
+    "colTotal": "total",
+    "colNotes": "notes",
+    "website": "website →"
+  },
+  "map": {
+    "title": "amsterdam bitterballen map",
+    "description": "neighbourhood averages (choropleth) and individual bars (circles) — both showing per-piece price.",
+    "emptyState": "no price data yet — add bars and prices via the admin panel to see the heatmap.",
+    "legendTitle": "price per piece",
+    "legendTier1": "< €8 for 6",
+    "legendTier2": "€8 – €9 for 6",
+    "legendTier3": "> €9 for 6",
+    "legendNoData": "no data",
+    "barSingular": "bar",
+    "barPlural": "bars",
+    "noBarsRecorded": "no bars recorded",
+    "clickHint": "click a neighbourhood to see its bars",
+    "clickDeselect": "click again to deselect",
+    "noDataTooltip": "no data · click to explore",
+    "tooltipAvg": "avg",
+    "loadingNeighbourhoods": "loading neighbourhoods…",
+    "perPiece": "per piece"
+  },
+  "admin": {
+    "loginTitle": "admin login",
+    "loginSubtitle": "bitterballen index",
+    "passwordLabel": "password",
+    "passwordPlaceholder": "enter admin password",
+    "loginButton": "log in",
+    "loggingIn": "logging in…",
+    "invalidPassword": "invalid password",
+    "logout": "logout"
+  }
+}
