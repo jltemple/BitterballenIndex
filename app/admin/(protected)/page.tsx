@@ -38,6 +38,7 @@ export default async function AdminDashboardPage() {
         <h1 className="text-xl font-bold text-gray-900">Bars ({bars.length})</h1>
         <Link
           href="/admin/bars/new"
+          prefetch={false}
           className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-sm hover:bg-orange-600 hover:-translate-y-px active:scale-95 transition-all"
         >
           + Add Bar
@@ -80,12 +81,14 @@ export default async function AdminDashboardPage() {
                     <div className="flex gap-2 justify-end">
                       <Link
                         href={`/admin/bars/${bar.id}/price`}
+                        prefetch={false}
                         className="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2.5 py-1 rounded-full hover:bg-orange-100 transition-colors"
                       >
                         + Price
                       </Link>
                       <Link
                         href={`/admin/bars/${bar.id}/edit`}
+                        prefetch={false}
                         className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full hover:bg-gray-200 hover:text-gray-900 transition-colors"
                       >
                         Edit

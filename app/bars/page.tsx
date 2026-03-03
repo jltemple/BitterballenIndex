@@ -68,7 +68,11 @@ export default async function BarsPage() {
               {bars.map((bar) => (
                 <tr key={bar.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3.5">
-                    <Link href={`/bars/${bar.id}`} className="font-medium text-gray-900 hover:text-orange-500 transition-colors">
+                    <Link
+                      href={`/bars/${bar.id}`}
+                      prefetch={false}
+                      className="font-medium text-gray-900 hover:text-orange-500 transition-colors"
+                    >
                       {bar.name}
                     </Link>
                     {bar.address && <p className="text-xs text-gray-400 mt-0.5">{bar.address}</p>}
