@@ -5,8 +5,8 @@ import dynamic from "next/dynamic";
 const AmsterdamMap = dynamic(() => import("./AmsterdamMap"), {
   ssr: false,
   loading: () => (
-    <div className="h-[65vh] bg-[#10161d] rounded-xl flex items-center justify-center">
-      <p className="text-neutral-400">Loading map…</p>
+    <div className="h-[65vh] bg-gray-100 rounded-xl flex items-center justify-center">
+      <p className="text-gray-500">loading map…</p>
     </div>
   ),
 });

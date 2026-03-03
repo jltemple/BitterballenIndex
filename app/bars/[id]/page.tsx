@@ -32,7 +32,7 @@ export default async function BarDetailPage({
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/bars" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← All Bars</Link>
+        <Link href="/bars" prefetch={false} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← all bars</Link>
         <h1 className="text-2xl font-bold text-gray-900 mt-2">{bar.name}</h1>
         {bar.address && <p className="text-gray-500 mt-1">{bar.address}</p>}
         <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -43,7 +43,7 @@ export default async function BarDetailPage({
           )}
           {bar.website && (
             <a href={bar.website} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-400 hover:text-orange-500 transition-colors">
-              Website →
+              website →
             </a>
           )}
         </div>
@@ -53,7 +53,7 @@ export default async function BarDetailPage({
       {latest && latestPerPiece !== null && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 flex items-center justify-between shadow-sm">
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">Current Price</p>
+            <p className="text-xs font-semibold text-gray-500 tracking-wide mb-2">current price</p>
             <p className="text-4xl font-extrabold text-orange-500">
               €{latestPerPiece.toFixed(2)}
               <span className="text-2xl font-semibold text-orange-400">/pc</span>
@@ -72,27 +72,27 @@ export default async function BarDetailPage({
       {/* Price history chart */}
       {bar.prices.length >= 2 ? (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Price History</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">price history</h2>
           <PriceHistoryChart prices={bar.prices} />
         </div>
       ) : bar.prices.length === 1 ? (
-        <p className="text-sm text-gray-500">Only one price entry — add more to see history.</p>
+        <p className="text-sm text-gray-500">only one price entry — add more to see history.</p>
       ) : (
-        <p className="text-sm text-gray-500">No prices recorded yet.</p>
+        <p className="text-sm text-gray-500">no prices recorded yet.</p>
       )}
 
       {/* All prices table */}
       {bar.prices.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">All Entries</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">all entries</h2>
           <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+              <thead className="bg-gray-50 text-gray-500 text-xs tracking-wide">
                 <tr>
-                  <th className="text-left px-4 py-3 font-semibold">Date</th>
-                  <th className="text-right px-4 py-3 font-semibold">Per Piece</th>
-                  <th className="text-right px-4 py-3 font-semibold hidden sm:table-cell">Total</th>
-                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">Notes</th>
+                  <th className="text-left px-4 py-3 font-semibold">date</th>
+                  <th className="text-right px-4 py-3 font-semibold">per piece</th>
+                  <th className="text-right px-4 py-3 font-semibold hidden sm:table-cell">total</th>
+                  <th className="text-left px-4 py-3 font-semibold hidden md:table-cell">notes</th>
                 </tr>
               </thead>
               <tbody>

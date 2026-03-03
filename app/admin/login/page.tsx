@@ -38,21 +38,21 @@ export default function AdminLoginPage() {
           <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center text-white font-black text-lg mx-auto mb-4">
             BI
           </div>
-          <h1 className="text-xl font-bold text-gray-900">Admin Login</h1>
-          <p className="text-sm text-gray-500 mt-1">Bitterballen Index</p>
+          <h1 className="text-xl font-bold text-gray-900">admin login</h1>
+          <p className="text-sm text-gray-500 mt-1">bitterballen index</p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Password</label>
+              <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
-                placeholder="Enter admin password"
+                placeholder="enter admin password"
               />
             </div>
             {error && (
@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
               disabled={loading}
               className="w-full bg-orange-500 text-white py-2.5 rounded-full font-semibold shadow-sm hover:bg-orange-600 hover:-translate-y-px active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {loading ? "Logging in…" : "Log In"}
+              {loading ? "logging in…" : "log in"}
             </button>
           </form>
         </div>

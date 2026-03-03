@@ -110,22 +110,22 @@ export default function NewBarPage() {
   return (
     <div className="max-w-lg">
       <div className="mb-6">
-        <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Dashboard</Link>
-        <h1 className="text-xl font-bold text-gray-900 mt-2">Add New Bar</h1>
+        <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← dashboard</Link>
+        <h1 className="text-xl font-bold text-gray-900 mt-2">add new bar</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
 
         {/* Bar name with Nominatim autocomplete */}
         <div className="relative">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Bar Name *</label>
+          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">bar name *</label>
           <input
             type="text"
             name="name"
             value={form.name}
             onChange={handleNameChange}
             onBlur={() => setTimeout(() => setSuggestions([]), 150)}
-            placeholder="Start typing a bar name…"
+            placeholder="start typing a bar name…"
             required
             className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
           />
@@ -145,31 +145,31 @@ export default function NewBarPage() {
           )}
         </div>
 
-        <Field label="Address" name="address" value={form.address} onChange={handleChange} placeholder="Leidseplein 12, Amsterdam" />
+        <Field label="address" name="address" value={form.address} onChange={handleChange} placeholder="Leidseplein 12, Amsterdam" />
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Latitude" name="lat" value={form.lat} onChange={handleChange} onBlur={detectNeighborhood} placeholder="52.3676" />
-          <Field label="Longitude" name="lng" value={form.lng} onChange={handleChange} onBlur={detectNeighborhood} placeholder="4.9041" />
+          <Field label="latitude" name="lat" value={form.lat} onChange={handleChange} onBlur={detectNeighborhood} placeholder="52.3676" />
+          <Field label="longitude" name="lng" value={form.lng} onChange={handleChange} onBlur={detectNeighborhood} placeholder="4.9041" />
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Neighbourhood</label>
-            {neighborhoodStatus === "detecting" && <span className="text-xs text-orange-500">Detecting…</span>}
-            {neighborhoodStatus === "found" && <span className="text-xs text-green-500">✓ Auto-detected</span>}
-            {neighborhoodStatus === "miss" && <span className="text-xs text-red-500">Outside Amsterdam — enter manually</span>}
+            <label className="text-xs font-semibold text-gray-500 tracking-wide">neighbourhood</label>
+            {neighborhoodStatus === "detecting" && <span className="text-xs text-orange-500">detecting…</span>}
+            {neighborhoodStatus === "found" && <span className="text-xs text-green-600">✓ auto-detected</span>}
+            {neighborhoodStatus === "miss" && <span className="text-xs text-red-500">outside amsterdam — enter manually</span>}
           </div>
           <input
             type="text"
             name="neighborhood"
             value={form.neighborhood}
             onChange={handleChange}
-            placeholder="Auto-filled from location"
+            placeholder="auto-filled from location"
             className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
           />
         </div>
 
-        <Field label="Website" name="website" value={form.website} onChange={handleChange} placeholder="https://example.com" type="url" />
+        <Field label="website" name="website" value={form.website} onChange={handleChange} placeholder="https://example.com" type="url" />
 
         {error && (
           <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
@@ -182,7 +182,7 @@ export default function NewBarPage() {
           disabled={loading}
           className="w-full bg-orange-500 text-white py-2.5 rounded-full font-semibold shadow-sm hover:bg-orange-600 hover:-translate-y-px active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
-          {loading ? "Saving…" : "Add Bar →"}
+          {loading ? "saving…" : "add bar →"}
         </button>
       </form>
     </div>

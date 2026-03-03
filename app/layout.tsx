@@ -19,11 +19,11 @@ export default function RootLayout({
           <nav className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5 font-bold text-lg">
               <span className="w-7 h-7 bg-orange-500 rounded-lg flex items-center justify-center text-white text-xs font-black">BI</span>
-              <span className="text-gray-900">Bitterballen Index</span>
+              <span className="text-gray-900">bitterballen index</span>
             </Link>
             <div className="flex gap-1 text-sm font-medium">
-              <Link href="/bars" className="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">Bars</Link>
-              <Link href="/map" className="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">Map</Link>
+              <Link href="/bars" prefetch={false} className="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">bars</Link>
+              <Link href="/map" prefetch={false} className="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">map</Link>
             </div>
           </nav>
         </header>
@@ -31,7 +31,7 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="text-center text-xs text-gray-400 py-6 mt-8 border-t border-gray-200">
-          Bitterballen Index Amsterdam — tracking snack prices since 2025
+          bitterballen index amsterdam — tracking snack prices since 2025
         </footer>
       </body>
     </html>

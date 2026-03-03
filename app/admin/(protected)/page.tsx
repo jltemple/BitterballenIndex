@@ -35,28 +35,28 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Bars ({bars.length})</h1>
+        <h1 className="text-xl font-bold text-gray-900">bars ({bars.length})</h1>
         <Link
           href="/admin/bars/new"
           prefetch={false}
           className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-sm hover:bg-orange-600 hover:-translate-y-px active:scale-95 transition-all"
         >
-          + Add Bar
+          + add bar
         </Link>
       </div>
 
       {bars.length === 0 ? (
-        <p className="text-gray-500">No bars yet. Add the first one!</p>
+        <p className="text-gray-500">no bars yet. add the first one!</p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+            <thead className="bg-gray-50 text-gray-500 text-xs tracking-wide">
               <tr>
-                <th className="text-left px-4 py-3 font-semibold">Bar</th>
-                <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">Neighbourhood</th>
-                <th className="text-right px-4 py-3 font-semibold">Latest Price</th>
-                <th className="text-right px-4 py-3 font-semibold hidden md:table-cell">Entries</th>
-                <th className="text-right px-4 py-3 font-semibold">Actions</th>
+                <th className="text-left px-4 py-3 font-semibold">bar</th>
+                <th className="text-left px-4 py-3 font-semibold hidden sm:table-cell">neighbourhood</th>
+                <th className="text-right px-4 py-3 font-semibold">latest price</th>
+                <th className="text-right px-4 py-3 font-semibold hidden md:table-cell">entries</th>
+                <th className="text-right px-4 py-3 font-semibold">actions</th>
               </tr>
             </thead>
             <tbody>
@@ -84,14 +84,14 @@ export default async function AdminDashboardPage() {
                         prefetch={false}
                         className="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2.5 py-1 rounded-full hover:bg-orange-100 transition-colors"
                       >
-                        + Price
+                        + price
                       </Link>
                       <Link
                         href={`/admin/bars/${bar.id}/edit`}
                         prefetch={false}
                         className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full hover:bg-gray-200 hover:text-gray-900 transition-colors"
                       >
-                        Edit
+                        edit
                       </Link>
                     </div>
                   </td>

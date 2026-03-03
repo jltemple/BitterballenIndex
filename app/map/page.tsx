@@ -64,9 +64,9 @@ export default async function MapPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Amsterdam Bitterballen Map</h1>
+        <h1 className="text-2xl font-bold text-gray-900">amsterdam bitterballen map</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Neighbourhood averages (choropleth) and individual bars (circles) — both showing per-piece price.
+          neighbourhood averages (choropleth) and individual bars (circles) — both showing per-piece price.
         </p>
       </div>
 
@@ -74,7 +74,7 @@ export default async function MapPage() {
 
       {heatmapData.length === 0 && (
         <p className="text-sm text-center text-gray-500">
-          No price data yet — add bars and prices via the admin panel to see the heatmap.
+          no price data yet — add bars and prices via the admin panel to see the heatmap.
         </p>
       )}
     </div>

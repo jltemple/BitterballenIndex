@@ -65,21 +65,21 @@ export default function SubmitPricePage() {
   return (
     <div className="max-w-sm">
       <div className="mb-6">
-        <Link href="/admin" className="text-sm text-neutral-400 hover:text-white transition-colors">← Dashboard</Link>
-        <h1 className="text-xl font-bold text-white mt-2">Submit Price</h1>
-        {barName && <p className="text-neutral-400 text-sm mt-1">{barName}</p>}
+        <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← dashboard</Link>
+        <h1 className="text-xl font-bold text-gray-900 mt-2">submit price</h1>
+        {barName && <p className="text-gray-500 text-sm mt-1">{barName}</p>}
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-[#10161d] rounded-xl border border-[#151e26] p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
 
         {/* Total price + quantity row */}
         <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
           <div>
-            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">
-              Total Price Paid *
+            <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">
+              total price paid *
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-3 text-neutral-500 text-sm">€</span>
+              <span className="absolute left-3 top-3 text-gray-400 text-sm">€</span>
               <input
                 type="number"
                 name="price_euro"
@@ -89,13 +89,13 @@ export default function SubmitPricePage() {
                 step="0.01"
                 min="0.01"
                 placeholder="15.00"
-                className="w-full bg-[#1c252e] border border-[#151e26] text-white rounded-lg pl-7 pr-3 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 transition placeholder:text-neutral-600"
+                className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg pl-7 pr-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
               />
             </div>
           </div>
           <div className="w-20">
-            <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">
-              For
+            <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">
+              for
             </label>
             <input
               type="number"
@@ -105,46 +105,46 @@ export default function SubmitPricePage() {
               required
               min="1"
               placeholder="6"
-              className="w-full bg-[#1c252e] border border-[#151e26] text-white rounded-lg px-3 py-3 text-sm text-center focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 transition placeholder:text-neutral-600"
+              className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm text-center focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
             />
           </div>
         </div>
 
         {/* Live per-piece calc */}
         {perPiece !== null ? (
-          <p className="text-sm text-orange-400 font-semibold">
+          <p className="text-sm text-orange-500 font-semibold">
             → €{perPiece}/pc
-            <span className="text-neutral-500 font-normal ml-1">per piece</span>
+            <span className="text-gray-400 font-normal ml-1">per piece</span>
           </p>
         ) : (
-          <p className="text-sm text-neutral-600">Enter price and quantity to see per-piece cost</p>
+          <p className="text-sm text-gray-400">enter price and quantity to see per-piece cost</p>
         )}
 
         <div>
-          <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Date</label>
+          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">date</label>
           <input
             type="date"
             name="recorded_at"
             value={form.recorded_at}
             onChange={handleChange}
-            className="w-full bg-[#1c252e] border border-[#151e26] text-white rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 transition"
+            className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2">Notes</label>
+          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">notes</label>
           <input
             type="text"
             name="notes"
             value={form.notes}
             onChange={handleChange}
             placeholder="e.g. happy hour price"
-            className="w-full bg-[#1c252e] border border-[#151e26] text-white rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/10 transition placeholder:text-neutral-600"
+            className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
           />
         </div>
 
         {error && (
-          <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+          <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
             {error}
           </p>
         )}
@@ -152,9 +152,9 @@ export default function SubmitPricePage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-orange-400 text-[#0b1217] py-2.5 rounded-full font-semibold shadow-[0_0_20px_rgba(251,146,60,0.2)] hover:bg-orange-300 hover:-translate-y-px active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="w-full bg-orange-500 text-white py-2.5 rounded-full font-semibold shadow-sm hover:bg-orange-600 hover:-translate-y-px active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
-          {loading ? "Saving…" : "Save Price"}
+          {loading ? "saving…" : "save price"}
         </button>
       </form>
     </div>

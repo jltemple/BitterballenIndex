@@ -31,7 +31,7 @@ interface Props {
  *  Thresholds: €8/6 ≈ 133 cts/pc (good), €9/6 = 150 cts/pc (expensive)
  */
 function getPriceColor(perPieceCents: number | undefined): string {
-  if (perPieceCents === undefined) return "#374151";
+  if (perPieceCents === undefined) return "#d1d5db";
   if (perPieceCents < 133) return "#22c55e";   // < €8.00 for 6
   if (perPieceCents < 150) return "#eab308";   // €8.00 – €9.00 for 6
   return "#ef4444";                             // > €9.00 for 6
@@ -41,7 +41,7 @@ const LEGEND = [
   { color: "#22c55e", label: "< €8 for 6" },
   { color: "#eab308", label: "€8 – €9 for 6" },
   { color: "#ef4444", label: "> €9 for 6" },
-  { color: "#374151", label: "No data" },
+  { color: "#d1d5db", label: "no data" },
 ];
 
 export default function AmsterdamMap({ heatmapData, bars }: Props) {
@@ -66,8 +66,8 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
     const data = priceByNeighborhood.get(name.toLowerCase());
     return {
       fillColor: getPriceColor(data?.avg_price_cents),
-      fillOpacity: data ? 0.45 : 0.1,
-      color: "#1c252e",
+      fillOpacity: data ? 0.45 : 0.15,
+      color: "#9ca3af",
       weight: 1,
     };
   }, [priceByNeighborhood]);
@@ -108,12 +108,12 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
   return (
     <div className="relative">
       {/* Legend */}
-      <div className="absolute top-4 right-4 z-[1000] bg-[#10161d] rounded-xl border border-[#151e26] p-3 text-xs space-y-1.5 shadow-lg">
-        <p className="font-semibold text-neutral-400 uppercase tracking-wide mb-2 text-[10px]">Price per piece</p>
+      <div className="absolute top-4 right-4 z-[1000] bg-white rounded-xl border border-gray-200 p-3 text-xs space-y-1.5 shadow-md">
+        <p className="font-semibold text-gray-500 tracking-wide mb-2 text-[10px]">price per piece</p>
         {LEGEND.map(({ color, label }) => (
           <div key={label} className="flex items-center gap-2">
             <span className="w-3.5 h-3.5 rounded-sm inline-block shrink-0" style={{ backgroundColor: color }} />
-            <span className="text-neutral-300">{label}</span>
+            <span className="text-gray-600">{label}</span>
           </div>
         ))}
       </div>
@@ -121,16 +121,16 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
       {/* Selection status / hint */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
         {selectedNeighborhood ? (
-          <div className="bg-[#10161d] border border-orange-400/30 text-orange-400 text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg">
+          <div className="bg-white border border-orange-300 text-orange-500 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md">
             {selectedNeighborhood}
             {visibleBars.length > 0
               ? ` · ${visibleBars.length} bar${visibleBars.length !== 1 ? "s" : ""}`
               : " · no bars recorded"}
-            <span className="text-neutral-500 font-normal ml-1.5">— click again to deselect</span>
+            <span className="text-gray-400 font-normal ml-1.5">— click again to deselect</span>
           </div>
         ) : (
-          <div className="bg-[#10161d]/80 border border-[#151e26] text-neutral-500 text-xs px-3 py-1.5 rounded-full shadow">
-            Click a neighbourhood to see its bars
+          <div className="bg-white/90 border border-gray-200 text-gray-400 text-xs px-3 py-1.5 rounded-full shadow">
+            click a neighbourhood to see its bars
           </div>
         )}
       </div>
@@ -196,7 +196,7 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
               pathOptions={{
                 fillColor: color,
                 fillOpacity: 0.95,
-                color: "#080c10",
+                color: "#ffffff",
                 weight: 2,
               }}
             >
@@ -211,8 +211,8 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
       </MapContainer>
 
       {!neighborhoodGeoJson && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#080c10]/80 rounded-xl">
-          <p className="text-neutral-400">Loading neighbourhoods…</p>
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80 rounded-xl">
+          <p className="text-gray-500">loading neighbourhoods…</p>
         </div>
       )}
     </div>

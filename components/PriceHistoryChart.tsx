@@ -34,31 +34,31 @@ export default function PriceHistoryChart({ prices }: Props) {
   }));
 
   return (
-    <div className="bg-[#10161d] rounded-xl border border-[#151e26] p-4">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#151e26" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 12, fill: "#9ca3af" }}
+            tick={{ fontSize: 12, fill: "#6b7280" }}
             tickLine={false}
           />
           <YAxis
             tickFormatter={(v) => `€${v.toFixed(2)}`}
-            tick={{ fontSize: 12, fill: "#9ca3af" }}
+            tick={{ fontSize: 12, fill: "#6b7280" }}
             tickLine={false}
             axisLine={false}
             domain={["auto", "auto"]}
           />
           <Tooltip
-            formatter={(value: number | undefined) => [value != null ? `€${value.toFixed(2)}/pc` : "—", "Per piece"]}
+            formatter={(value: number | undefined) => [value != null ? `€${value.toFixed(2)}/pc` : "—", "per piece"]}
             labelFormatter={(label) => label}
             contentStyle={{
-              backgroundColor: "#10161d",
-              borderColor: "#151e26",
+              backgroundColor: "#ffffff",
+              borderColor: "#e5e7eb",
               borderRadius: "8px",
               fontSize: "13px",
-              color: "#ffffff",
+              color: "#111827",
             }}
           />
           <Line
