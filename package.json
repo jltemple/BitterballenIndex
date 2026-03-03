@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "build:hexes": "tsx scripts/build-hex-lookup.ts"
+    "start": "next start"
   },
   "keywords": [],
   "author": "",
@@ -24,7 +23,6 @@
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.27",
     "bcryptjs": "^3.0.3",
-    "h3-js": "^4.4.0",
     "leaflet": "^1.9.4",
     "next": "^16.1.6",
     "next-intl": "^4.8.3",

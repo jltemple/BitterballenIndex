@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase";
-import { barCell, neighborhoodFromLatLng } from "@/lib/h3-server";
+import { neighborhoodFromLatLng } from "@/lib/h3-server";
 
 export async function POST(req: Request) {
   const authError = await requireAdmin();
@@ -17,18 +17,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
-  // Auto-compute H3 cell and neighbourhood from coordinates if provided
-  let h3_cell: string | null = null;
+  // Server-side neighbourhood derivation overrides whatever the client sent
   if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) {
-    h3_cell = barCell(lat, lng);
-    // Server-side neighbourhood derivation overrides whatever the client sent
     neighborhood = neighborhoodFromLatLng(lat, lng) ?? neighborhood ?? null;
   }
 
   const db = createServiceClient();
   const { data, error } = await db
     .from("bars")
-    .insert({ name, address, neighborhood, lat, lng, h3_cell, website })
+    .insert({ name, address, neighborhood, lat, lng, website })
     .select()
     .single();
 

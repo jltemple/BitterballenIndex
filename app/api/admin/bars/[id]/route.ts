@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase";
-import { barCell, neighborhoodFromLatLng } from "@/lib/h3-server";
+import { neighborhoodFromLatLng } from "@/lib/h3-server";
 
 export async function PATCH(
   req: Request,
@@ -16,16 +16,14 @@ export async function PATCH(
   const { name, address, lat, lng, website } = body;
   let { neighborhood } = body as { neighborhood: string | null };
 
-  let h3_cell: string | null = null;
   if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) {
-    h3_cell = barCell(lat, lng);
     neighborhood = neighborhoodFromLatLng(lat, lng) ?? neighborhood ?? null;
   }
 
   const db = createServiceClient();
   const { data, error } = await db
     .from("bars")
-    .update({ name, address, neighborhood, lat, lng, h3_cell, website })
+    .update({ name, address, neighborhood, lat, lng, website })
     .eq("id", id)
     .select()
     .single();

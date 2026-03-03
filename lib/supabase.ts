@@ -21,7 +21,6 @@ export interface Bar {
   neighborhood: string | null;
   lat: number | null;
   lng: number | null;
-  h3_cell: string | null; // H3 res-12 cell for precise bar location (~9m edge)
   website: string | null;
   created_at: string;
 }

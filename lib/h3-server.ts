@@ -1,17 +1,9 @@
 /**
- * Server-only H3 + geo utilities.
+ * Server-only geo utilities.
  * Do NOT import this in client components.
  */
 import { readFileSync } from "fs";
 import { join } from "path";
-import { latLngToCell } from "h3-js";
-
-export const BAR_RESOLUTION = 12; // ~9m edge — individual building precision
-
-/** Compute the res-12 H3 cell for a bar's precise position. */
-export function barCell(lat: number, lng: number): string {
-  return latLngToCell(lat, lng, BAR_RESOLUTION);
-}
 
 // ─── GeoJSON point-in-polygon ────────────────────────────────────────────────
 

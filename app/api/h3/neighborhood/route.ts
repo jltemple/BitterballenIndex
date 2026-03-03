@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { neighborhoodFromLatLng, barCell } from "@/lib/h3-server";
+import { neighborhoodFromLatLng } from "@/lib/h3-server";
 
 export async function GET(req: NextRequest) {
   const lat = parseFloat(req.nextUrl.searchParams.get("lat") ?? "");
@@ -15,7 +15,5 @@ export async function GET(req: NextRequest) {
   }
 
   const neighborhood = neighborhoodFromLatLng(lat, lng);
-  const cell10 = barCell(lat, lng);
-
-  return NextResponse.json({ neighborhood, cell10 });
+  return NextResponse.json({ neighborhood });
 }
