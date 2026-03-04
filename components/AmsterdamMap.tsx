@@ -37,28 +37,45 @@ interface Props {
   noBitterballenBars?: NoBitterballenMarker[];
 }
 
-/** Per-piece price in cents → color tier
- *  Thresholds: €8/6 ≈ 133 cts/pc (good), €9/6 = 150 cts/pc (expensive)
- */
-function getPriceColor(perPieceCents: number | undefined): string {
-  if (perPieceCents === undefined) return "#d1d5db";
-  if (perPieceCents < 133) return "#22c55e";   // < €8.00 for 6
-  if (perPieceCents < 150) return "#eab308";   // €8.00 – €9.00 for 6
-  return "#ef4444";                             // > €9.00 for 6
-}
+/** Thresholds: €8/6 ≈ 133 cts/pc (good), €9/6 = 150 cts/pc (expensive) */
+const PALETTES = {
+  normal: { cheap: "#22c55e", mid: "#eab308", expensive: "#ef4444", noData: "#d1d5db" },
+  // Okabe-Ito — safe for deuteranopia, protanopia, and tritanopia
+  cb:     { cheap: "#0072B2", mid: "#E69F00", expensive: "#CC79A7", noData: "#d1d5db" },
+} as const;
 
-const LEGEND_COLORS = ["#22c55e", "#eab308", "#ef4444", "#d1d5db"] as const;
+function getPriceColor(perPieceCents: number | undefined, colorblind: boolean): string {
+  const p = colorblind ? PALETTES.cb : PALETTES.normal;
+  if (perPieceCents === undefined) return p.noData;
+  if (perPieceCents < 133) return p.cheap;
+  if (perPieceCents < 150) return p.mid;
+  return p.expensive;
+}
 
 export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [] }: Props) {
   const t = useTranslations("map");
   const [neighborhoodGeoJson, setNeighborhoodGeoJson] = useState<FeatureCollection | null>(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
+  const [colorblind, setColorblind] = useState(false);
 
+  // Persist colorblind preference across sessions
+  useEffect(() => {
+    setColorblind(localStorage.getItem("cb") === "1");
+  }, []);
+  function toggleColorblind() {
+    setColorblind((prev) => {
+      const next = !prev;
+      localStorage.setItem("cb", next ? "1" : "0");
+      return next;
+    });
+  }
+
+  const palette = colorblind ? PALETTES.cb : PALETTES.normal;
   const legend = [
-    { color: LEGEND_COLORS[0], label: t("legendTier1") },
-    { color: LEGEND_COLORS[1], label: t("legendTier2") },
-    { color: LEGEND_COLORS[2], label: t("legendTier3") },
-    { color: LEGEND_COLORS[3], label: t("legendNoData") },
+    { color: palette.cheap,     label: t("legendTier1") },
+    { color: palette.mid,       label: t("legendTier2") },
+    { color: palette.expensive, label: t("legendTier3") },
+    { color: palette.noData,    label: t("legendNoData") },
   ];
 
   useEffect(() => {
@@ -78,12 +95,12 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
     const name = feature?.properties?.naam ?? "";
     const data = priceByNeighborhood.get(name.toLowerCase());
     return {
-      fillColor: getPriceColor(data?.avg_price_cents),
+      fillColor: getPriceColor(data?.avg_price_cents, colorblind),
       fillOpacity: data ? 0.45 : 0.15,
       color: "#fb923c",
       weight: 2,
     };
-  }, [priceByNeighborhood]);
+  }, [priceByNeighborhood, colorblind]);
 
   const onEachNeighborhood = useCallback((feature: Feature, layer: L.Layer) => {
     const name: string = feature.properties?.naam ?? "Unknown";
@@ -222,10 +239,10 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
           />
         )}
 
-        {/* Base neighbourhood choropleth */}
+        {/* Base neighbourhood choropleth — key includes colorblind to force remount on toggle */}
         {neighborhoodGeoJson && (
           <GeoJSON
-            key="neighborhoods-base"
+            key={`neighborhoods-base-${colorblind}`}
             data={neighborhoodGeoJson}
             style={styleNeighborhoodBase}
             onEachFeature={onEachNeighborhood}
@@ -235,10 +252,10 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
         {/* Selected neighbourhood highlight — click deselects */}
         {selectedFeature && (
           <GeoJSON
-            key={`selected-${selectedNeighborhood}`}
+            key={`selected-${selectedNeighborhood}-${colorblind}`}
             data={selectedFeature}
             style={() => ({
-              fillColor: getPriceColor(selectedData?.avg_price_cents),
+              fillColor: getPriceColor(selectedData?.avg_price_cents, colorblind),
               fillOpacity: 0.65,
               color: "#fb923c",
               weight: 3,
@@ -281,7 +298,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
             bar.latest_price_cents != null && bar.latest_quantity != null
               ? Math.round(bar.latest_price_cents / bar.latest_quantity)
               : undefined;
-          const color = getPriceColor(perPieceCents);
+          const color = getPriceColor(perPieceCents, colorblind);
           const priceStr =
             perPieceCents != null
               ? `€${(perPieceCents / 100).toFixed(2)}/pc`
@@ -315,6 +332,28 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
           <p className="text-gray-500">{t("loadingNeighbourhoods")}</p>
         </div>
       )}
+
+      {/* Colorblind mode toggle */}
+      <div className="mt-2 flex justify-end">
+        <button
+          role="switch"
+          aria-checked={colorblind}
+          onClick={toggleColorblind}
+          className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-500 transition-colors"
+        >
+          <span
+            className="relative inline-flex h-4 w-7 rounded-full transition-colors duration-200 shrink-0"
+            style={{ backgroundColor: colorblind ? "#0072B2" : "#d1d5db" }}
+          >
+            <span
+              className={`absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-transform duration-200 ${
+                colorblind ? "translate-x-3.5" : "translate-x-0.5"
+              }`}
+            />
+          </span>
+          colorblind mode
+        </button>
+      </div>
     </div>
   );
 }
