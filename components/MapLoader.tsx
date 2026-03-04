@@ -27,11 +27,20 @@ interface BarMarker {
   latest_quantity: number | null;
 }
 
+interface NoBitterballenMarker {
+  id: string;
+  name: string;
+  neighborhood: string | null;
+  lat: number;
+  lng: number;
+}
+
 interface Props {
   heatmapData: NeighborhoodPrice[];
   bars: BarMarker[];
+  noBitterballenBars?: NoBitterballenMarker[];
 }
 
-export default function MapLoader({ heatmapData, bars }: Props) {
-  return <AmsterdamMap heatmapData={heatmapData} bars={bars} />;
+export default function MapLoader({ heatmapData, bars, noBitterballenBars = [] }: Props) {
+  return <AmsterdamMap heatmapData={heatmapData} bars={bars} noBitterballenBars={noBitterballenBars} />;
 }

@@ -3,6 +3,7 @@ import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
+import PrimaryNav from "@/components/PrimaryNav";
 import { routing } from "@/i18n/routing";
 
 export function generateStaticParams() {
@@ -35,10 +36,7 @@ export default async function LocaleLayout({
                 <span className="text-gray-900">{t("brand")}</span>
               </Link>
               <div className="flex items-center">
-                <div className="flex gap-1 text-sm font-medium">
-                  <Link href="/bars" prefetch={false} className="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">{t("navBars")}</Link>
-                  <Link href="/map" prefetch={false} className="px-3 py-1.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">{t("navMap")}</Link>
-                </div>
+                <PrimaryNav />
                 <LocaleSwitcher />
               </div>
             </nav>

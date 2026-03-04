@@ -13,7 +13,7 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json();
-  const { name, address, lat, lng, website } = body;
+  const { name, address, lat, lng, website, has_bitterballen } = body;
   let { neighborhood } = body as { neighborhood: string | null };
 
   if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) {
@@ -23,7 +23,7 @@ export async function PATCH(
   const db = createServiceClient();
   const { data, error } = await db
     .from("bars")
-    .update({ name, address, neighborhood, lat, lng, website })
+    .update({ name, address, neighborhood, lat, lng, website, has_bitterballen: has_bitterballen ?? true })
     .eq("id", id)
     .select()
     .single();

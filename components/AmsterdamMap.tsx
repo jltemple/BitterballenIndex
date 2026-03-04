@@ -23,9 +23,18 @@ interface BarMarker {
   latest_quantity: number | null;
 }
 
+interface NoBitterballenMarker {
+  id: string;
+  name: string;
+  neighborhood: string | null;
+  lat: number;
+  lng: number;
+}
+
 interface Props {
   heatmapData: NeighborhoodPrice[];
   bars: BarMarker[];
+  noBitterballenBars?: NoBitterballenMarker[];
 }
 
 /** Per-piece price in cents → color tier
@@ -40,7 +49,7 @@ function getPriceColor(perPieceCents: number | undefined): string {
 
 const LEGEND_COLORS = ["#22c55e", "#eab308", "#ef4444", "#d1d5db"] as const;
 
-export default function AmsterdamMap({ heatmapData, bars }: Props) {
+export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [] }: Props) {
   const t = useTranslations("map");
   const [neighborhoodGeoJson, setNeighborhoodGeoJson] = useState<FeatureCollection | null>(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
@@ -110,6 +119,10 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
     ? bars.filter((b) => b.neighborhood === selectedNeighborhood)
     : [];
 
+  const visibleNoBitterballen = selectedNeighborhood
+    ? noBitterballenBars.filter((b) => b.neighborhood === selectedNeighborhood)
+    : [];
+
   return (
     <div className="relative">
       {/* Legend */}
@@ -128,9 +141,12 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
         {selectedNeighborhood ? (
           <div className="bg-white border border-orange-300 text-orange-500 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md whitespace-nowrap">
             {selectedNeighborhood}
-            {visibleBars.length > 0
-              ? ` · ${visibleBars.length} ${t(visibleBars.length !== 1 ? "barPlural" : "barSingular")}`
-              : ` · ${t("noBarsRecorded")}`}
+            {(() => {
+              const total = visibleBars.length + visibleNoBitterballen.length;
+              return total > 0
+                ? ` · ${visibleBars.length} ${t(visibleBars.length !== 1 ? "barPlural" : "barSingular")}${visibleNoBitterballen.length > 0 ? `, ${visibleNoBitterballen.length} no bb` : ""}`
+                : ` · ${t("noBarsRecorded")}`;
+            })()}
             <span className="text-gray-400 font-normal ml-1.5">— {t("clickDeselect")}</span>
           </div>
         ) : (
@@ -180,6 +196,27 @@ export default function AmsterdamMap({ heatmapData, bars }: Props) {
             }}
           />
         )}
+
+        {/* No-bitterballen grey dots */}
+        {visibleNoBitterballen.map((bar) => (
+          <CircleMarker
+            key={bar.id}
+            center={[bar.lat, bar.lng]}
+            radius={5}
+            pathOptions={{
+              fillColor: "#9ca3af",
+              fillOpacity: 0.7,
+              color: "#ffffff",
+              weight: 1.5,
+            }}
+          >
+            <Tooltip direction="top" offset={[0, -8]} permanent={false}>
+              <strong>{bar.name}</strong>
+              <br />
+              <span style={{ color: "#9ca3af" }}>no bitterballen</span>
+            </Tooltip>
+          </CircleMarker>
+        ))}
 
         {/* Bar dots — rendered last, always on top of both polygon layers */}
         {visibleBars.map((bar) => {

@@ -42,3 +42,8 @@ create policy "Public can read prices" on prices for select using (true);
 -- ALTER TABLE bars DROP COLUMN IF EXISTS h3_cell;
 -- DROP INDEX IF EXISTS idx_bars_h3_cell;
 -- ALTER TABLE prices ADD COLUMN IF NOT EXISTS quantity integer NOT NULL DEFAULT 6;
+-- ALTER TABLE bars ADD COLUMN IF NOT EXISTS osm_id bigint;
+-- CREATE UNIQUE INDEX IF NOT EXISTS bars_osm_id_idx ON bars(osm_id) WHERE osm_id IS NOT NULL;
+-- CREATE TABLE IF NOT EXISTS dismissed_osm_nodes (osm_id bigint PRIMARY KEY, dismissed_at timestamptz DEFAULT now());
+-- CREATE TABLE IF NOT EXISTS discovered_venues (osm_id bigint PRIMARY KEY, name text NOT NULL, address text, lat float NOT NULL, lng float NOT NULL, website text, amenity text, scrape_status text NOT NULL DEFAULT 'pending', scraped_price_cents integer, scraped_quantity integer NOT NULL DEFAULT 6, scrape_context text, last_scraped_at timestamptz, added_at timestamptz DEFAULT now());
+-- CREATE INDEX IF NOT EXISTS discovered_venues_status_idx ON discovered_venues(scrape_status);

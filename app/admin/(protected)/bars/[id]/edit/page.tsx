@@ -27,6 +27,7 @@ export default function EditBarPage() {
   const [form, setForm] = useState({
     name: "", address: "", neighborhood: "", lat: "", lng: "", website: "",
   });
+  const [hasBitterballen, setHasBitterballen] = useState(true);
   const [neighborhoodStatus, setNeighborhoodStatus] = useState<"idle" | "detecting" | "found" | "miss">("idle");
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
   const [error, setError] = useState("");
@@ -46,6 +47,7 @@ export default function EditBarPage() {
           lng: bar.lng?.toString() ?? "",
           website: bar.website ?? "",
         });
+        setHasBitterballen(bar.has_bitterballen ?? true);
         setFetching(false);
       })
       .catch(() => setFetching(false));
@@ -112,6 +114,7 @@ export default function EditBarPage() {
       ...form,
       lat: form.lat ? parseFloat(form.lat) : null,
       lng: form.lng ? parseFloat(form.lng) : null,
+      has_bitterballen: hasBitterballen,
     };
     const res = await fetch(`/api/admin/bars/${barId}`, {
       method: "PATCH",
@@ -191,6 +194,20 @@ export default function EditBarPage() {
         </div>
 
         <Field label="website" name="website" value={form.website} onChange={handleChange} placeholder="https://example.com" type="url" />
+
+        {/* Bitterballen toggle */}
+        <label className="flex items-center justify-between gap-3 cursor-pointer select-none rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50 transition-colors">
+          <div>
+            <p className="text-sm font-medium text-gray-900">serves bitterballen</p>
+            <p className="text-xs text-gray-400 mt-0.5">uncheck if this bar doesn't serve them — shown as grey dot on map</p>
+          </div>
+          <input
+            type="checkbox"
+            checked={hasBitterballen}
+            onChange={(e) => setHasBitterballen(e.target.checked)}
+            className="w-4 h-4 accent-orange-500"
+          />
+        </label>
 
         {error && (
           <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">

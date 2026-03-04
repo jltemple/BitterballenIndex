@@ -12,7 +12,7 @@ async function getMapData() {
 
   const { data: bars } = await supabase
     .from("bars")
-    .select("id, name, neighborhood, lat, lng")
+    .select("id, name, neighborhood, lat, lng, has_bitterballen")
     .not("lat", "is", null)
     .not("lng", "is", null);
 
@@ -24,10 +24,11 @@ async function getMapData() {
     }
   }
 
-  // Neighbourhood heatmap: avg per-piece price
+  // Neighbourhood heatmap: avg per-piece price — exclude no-bitterballen bars
   const neighborhoodData = new Map<string, { totalPerPiece: number; count: number }>();
   for (const bar of bars ?? []) {
     if (!bar.neighborhood) continue;
+    if (!bar.has_bitterballen) continue; // excluded from calculations
     const latest = latestByBar.get(bar.id);
     if (!latest) continue;
     const perPiece = latest.price_cents / latest.quantity;
@@ -44,25 +45,37 @@ async function getMapData() {
     bar_count: count,
   }));
 
-  // Bar markers for the map
-  const barMarkers = (bars ?? []).map((bar) => {
-    const latest = latestByBar.get(bar.id);
-    return {
+  // Split bars: priced markers vs no-bitterballen grey dots
+  const barMarkers = (bars ?? [])
+    .filter((bar) => bar.has_bitterballen !== false)
+    .map((bar) => {
+      const latest = latestByBar.get(bar.id);
+      return {
+        id: bar.id,
+        name: bar.name,
+        neighborhood: bar.neighborhood ?? null,
+        lat: bar.lat as number,
+        lng: bar.lng as number,
+        latest_price_cents: latest?.price_cents ?? null,
+        latest_quantity: latest?.quantity ?? null,
+      };
+    });
+
+  const noBitterballenMarkers = (bars ?? [])
+    .filter((bar) => bar.has_bitterballen === false)
+    .map((bar) => ({
       id: bar.id,
       name: bar.name,
       neighborhood: bar.neighborhood ?? null,
       lat: bar.lat as number,
       lng: bar.lng as number,
-      latest_price_cents: latest?.price_cents ?? null,
-      latest_quantity: latest?.quantity ?? null,
-    };
-  });
+    }));
 
-  return { heatmapData, barMarkers };
+  return { heatmapData, barMarkers, noBitterballenMarkers };
 }
 
 export default async function MapPage() {
-  const { heatmapData, barMarkers } = await getMapData();
+  const { heatmapData, barMarkers, noBitterballenMarkers } = await getMapData();
   const t = await getTranslations("map");
 
   return (
@@ -72,7 +85,7 @@ export default async function MapPage() {
         <p className="text-sm text-gray-500 mt-1">{t("description")}</p>
       </div>
 
-      <MapLoader heatmapData={heatmapData} bars={barMarkers} />
+      <MapLoader heatmapData={heatmapData} bars={barMarkers} noBitterballenBars={noBitterballenMarkers} />
 
       {heatmapData.length === 0 && (
         <p className="text-sm text-center text-gray-500">{t("emptyState")}</p>

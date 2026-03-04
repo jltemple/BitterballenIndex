@@ -22,6 +22,8 @@ export interface Bar {
   lat: number | null;
   lng: number | null;
   website: string | null;
+  osm_id: number | null;
+  has_bitterballen: boolean;
   created_at: string;
 }
 
