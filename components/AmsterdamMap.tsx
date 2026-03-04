@@ -127,6 +127,40 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
   const selectedBarCount = visibleBars.length;
   const selectedNoBbCount = visibleNoBb.length;
 
+  // World-minus-Amsterdam mask: one giant polygon with every neighbourhood as a hole.
+  // Leaflet uses evenodd fill-rule by default, so winding order doesn't matter —
+  // the world rectangle is filled, and anything inside a neighbourhood ring is not.
+  const maskGeoJson = useMemo((): FeatureCollection | null => {
+    if (!neighborhoodGeoJson) return null;
+    const holes: number[][][] = [];
+    for (const f of neighborhoodGeoJson.features) {
+      const g = f.geometry;
+      if (g.type === "Polygon") {
+        holes.push(g.coordinates[0] as number[][]);
+      } else if (g.type === "MultiPolygon") {
+        for (const part of g.coordinates) {
+          holes.push(part[0] as number[][]);
+        }
+      }
+    }
+    return {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [[-180, -90], [-180, 90], [180, 90], [180, -90], [-180, -90]],
+              ...holes,
+            ],
+          },
+        } as Feature,
+      ],
+    };
+  }, [neighborhoodGeoJson]);
+
   return (
     <div className="relative">
       {/* Legend */}
@@ -163,12 +197,30 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
       <MapContainer
         center={[52.373, 4.893]}
         zoom={12}
+        minZoom={11}
         style={{ height: "65vh", width: "100%", borderRadius: "12px" }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
+
+        {/* Mask: grays out everything outside Amsterdam. Rendered first so it sits
+            below the choropleth in SVG stacking order. interactive=false so it
+            never intercepts clicks or hovers. No custom pane needed. */}
+        {maskGeoJson && (
+          <GeoJSON
+            key="mask"
+            data={maskGeoJson}
+            interactive={false}
+            style={() => ({
+              fillColor: "#6b7280",
+              fillOpacity: 0.42,
+              stroke: false,
+              weight: 0,
+            })}
+          />
+        )}
 
         {/* Base neighbourhood choropleth */}
         {neighborhoodGeoJson && (
