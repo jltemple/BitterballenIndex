@@ -27,6 +27,7 @@ export default function DiscoverPage() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [nameFilter, setNameFilter] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -148,8 +149,11 @@ export default function DiscoverPage() {
     setStatus(`✓ "${venue.name}" added as no-bitterballen bar`);
   }
 
-  const totalPages = Math.ceil((venues?.length ?? 0) / PAGE_SIZE);
-  const pagedVenues = venues?.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE) ?? [];
+  const filteredVenues = nameFilter.trim()
+    ? (venues ?? []).filter((v) => v.name.toLowerCase().includes(nameFilter.toLowerCase().trim()))
+    : (venues ?? []);
+  const totalPages = Math.ceil(filteredVenues.length / PAGE_SIZE);
+  const pagedVenues = filteredVenues.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const pageIds = pagedVenues.map((v) => v.osm_id);
   const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
   const somePageSelected = pageIds.some((id) => selected.has(id)) && !allPageSelected;
@@ -160,20 +164,33 @@ export default function DiscoverPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
           <h1 className="text-xl font-bold text-gray-900">discover bars</h1>
           {venues !== null && !loading && (
-            <p className="text-sm text-gray-400 mt-0.5">{venues.length} new venues from openstreetmap</p>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {nameFilter.trim() && filteredVenues.length !== venues.length
+                ? `${filteredVenues.length} of ${venues.length} venues`
+                : `${venues.length} new venues from openstreetmap`}
+            </p>
           )}
         </div>
-        <button
-          onClick={load}
-          disabled={loading}
-          className="text-sm bg-gray-100 text-gray-600 px-4 py-2 rounded-full hover:bg-gray-200 hover:text-gray-900 transition-colors disabled:opacity-50"
-        >
-          {loading ? "loading…" : "↻ refresh"}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <input
+            type="text"
+            value={nameFilter}
+            onChange={(e) => { setNameFilter(e.target.value); setPage(0); }}
+            placeholder="filter by name…"
+            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 focus:outline-none focus:border-orange-400 w-44 transition-colors"
+          />
+          <button
+            onClick={load}
+            disabled={loading}
+            className="text-sm bg-gray-100 text-gray-600 px-4 py-2 rounded-full hover:bg-gray-200 hover:text-gray-900 transition-colors disabled:opacity-50"
+          >
+            {loading ? "loading…" : "↻ refresh"}
+          </button>
+        </div>
       </div>
 
       {status && (
