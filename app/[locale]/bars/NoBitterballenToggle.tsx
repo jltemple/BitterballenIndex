@@ -10,21 +10,46 @@ interface Bar {
   neighborhood: string | null;
 }
 
-export default function NoBitterballenToggle({ bars }: { bars: Bar[] }) {
+export default function NoBitterballenToggle() {
   const [open, setOpen] = useState(false);
-  if (bars.length === 0) return null;
+  const [bars, setBars] = useState<Bar[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleToggle() {
+    // Fetch once on first open
+    if (!open && bars === null) {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/bars/no-bitterballen");
+        const { bars: data } = await res.json();
+        setBars(data);
+      } finally {
+        setLoading(false);
+      }
+    }
+    setOpen((o) => !o);
+  }
+
+  const count = bars?.length ?? null;
 
   return (
     <div className="mt-4">
       <button
-        onClick={() => setOpen((o) => !o)}
-        className="text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1.5"
+        onClick={handleToggle}
+        disabled={loading}
+        className="text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1.5 disabled:opacity-50"
       >
         <span>{open ? "▾" : "▸"}</span>
-        {open ? "hide" : `show ${bars.length} bar${bars.length !== 1 ? "s" : ""} that don't serve bitterballen`}
+        {loading
+          ? "loading…"
+          : open
+          ? "hide"
+          : count !== null
+          ? `show ${count} bar${count !== 1 ? "s" : ""} that don't serve bitterballen`
+          : "show bars that don't serve bitterballen"}
       </button>
 
-      {open && (
+      {open && bars && bars.length > 0 && (
         <div className="mt-2 overflow-x-auto rounded-xl border border-gray-200 shadow-sm opacity-60">
           <table className="w-full text-sm">
             <tbody>
@@ -53,6 +78,10 @@ export default function NoBitterballenToggle({ bars }: { bars: Bar[] }) {
             </tbody>
           </table>
         </div>
+      )}
+
+      {open && bars && bars.length === 0 && (
+        <p className="mt-2 text-sm text-gray-400">none recorded yet</p>
       )}
     </div>
   );

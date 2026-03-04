@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter, usePathname, Link } from "@/i18n/navigation";
 
@@ -14,19 +14,27 @@ interface Bar {
   latest_recorded_at: string | null;
 }
 
+interface DisplayBar extends Bar {
+  has_bitterballen: boolean;
+}
+
 type SortField = "price" | "name";
 type SortDir = "asc" | "desc";
 
 const PAGE_SIZE = 25;
 
 function formatPerPiece(priceCents: number | null, quantity: number | null) {
-  if (priceCents === null || quantity === null) return "—";
-  return `€${(priceCents / quantity / 100).toFixed(2)}/pc`;
+  if (priceCents === null || quantity === null) return "-";
+  return `\u20AC${(priceCents / quantity / 100).toFixed(2)}/pc`;
 }
 
 function formatDate(iso: string | null) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
+  if (!iso) return "-";
+  return new Date(iso).toLocaleDateString("nl-NL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 interface Props {
@@ -37,7 +45,13 @@ interface Props {
   colRecorded: string;
 }
 
-export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece, colRecorded }: Props) {
+export default function BarsTable({
+  bars,
+  colBar,
+  colNeighbourhood,
+  colPerPiece,
+  colRecorded,
+}: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -46,6 +60,22 @@ export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece,
   const sortDir = (searchParams.get("dir") ?? "asc") as SortDir;
   const page = parseInt(searchParams.get("page") ?? "0", 10);
   const neighborhood = searchParams.get("neighborhood") ?? "";
+  const showAll = searchParams.get("all") === "1";
+
+  const [noBbBars, setNoBbBars] = useState<Bar[]>([]);
+  const [noBbLoading, setNoBbLoading] = useState(false);
+
+  useEffect(() => {
+    if (!showAll) {
+      setNoBbBars([]);
+      return;
+    }
+    setNoBbLoading(true);
+    fetch("/api/bars/no-bitterballen")
+      .then((r) => r.json())
+      .then(({ bars: data }) => setNoBbBars(data ?? []))
+      .finally(() => setNoBbLoading(false));
+  }, [showAll]);
 
   function setParams(updates: Record<string, string>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -68,14 +98,32 @@ export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece,
     setParams({ page: newPage === 0 ? "" : String(newPage) });
   }
 
+  function handleToggleAll() {
+    setParams({ all: showAll ? "" : "1", page: "" });
+  }
+
+  const allDisplayBars: DisplayBar[] = useMemo(
+    () => [
+      ...bars.map((b) => ({ ...b, has_bitterballen: true })),
+      ...noBbBars.map((b) => ({
+        ...b,
+        has_bitterballen: false,
+        latest_price_cents: null,
+        latest_quantity: null,
+        latest_recorded_at: null,
+      })),
+    ],
+    [bars, noBbBars],
+  );
+
   const neighborhoods = useMemo(() => {
-    const set = new Set(bars.map((b) => b.neighborhood).filter(Boolean) as string[]);
+    const set = new Set(allDisplayBars.map((b) => b.neighborhood).filter(Boolean) as string[]);
     return [...set].sort();
-  }, [bars]);
+  }, [allDisplayBars]);
 
   const filtered = neighborhood
-    ? bars.filter((b) => b.neighborhood === neighborhood)
-    : bars;
+    ? allDisplayBars.filter((b) => b.neighborhood === neighborhood)
+    : allDisplayBars;
 
   const sorted = [...filtered].sort((a, b) => {
     if (sortField === "price") {
@@ -89,9 +137,7 @@ export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece,
           : Infinity;
       return sortDir === "asc" ? aP - bP : bP - aP;
     }
-    return sortDir === "asc"
-      ? a.name.localeCompare(b.name)
-      : b.name.localeCompare(a.name);
+    return sortDir === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
   });
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
@@ -105,8 +151,7 @@ export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece,
 
   return (
     <div>
-      {/* Toolbar */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-3 flex-wrap">
         <select
           value={neighborhood}
           onChange={(e) => handleNeighborhood(e.target.value)}
@@ -114,20 +159,22 @@ export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece,
         >
           <option value="">all neighbourhoods</option>
           {neighborhoods.map((n) => (
-            <option key={n} value={n}>{n}</option>
+            <option key={n} value={n}>
+              {n}
+            </option>
           ))}
         </select>
+
         {neighborhood && (
           <button
             onClick={() => handleNeighborhood("")}
             className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
           >
-            ✕ clear
+            x clear
           </button>
         )}
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-500 text-xs tracking-wide">
@@ -169,28 +216,40 @@ export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece,
               paged.map((bar) => (
                 <tr
                   key={bar.id}
-                  className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
+                  className={`border-b border-gray-100 last:border-0 transition-colors ${
+                    bar.has_bitterballen ? "hover:bg-gray-50" : "opacity-50 hover:opacity-70"
+                  }`}
                 >
                   <td className="px-4 py-3.5">
                     <Link
                       href={`/bars/${bar.id}`}
                       prefetch={false}
-                      className="font-medium text-gray-900 hover:text-orange-500 transition-colors"
+                      className={`font-medium transition-colors ${
+                        bar.has_bitterballen
+                          ? "text-gray-900 hover:text-orange-500"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
                     >
                       {bar.name}
                     </Link>
-                    {bar.address && (
-                      <p className="text-xs text-gray-400 mt-0.5">{bar.address}</p>
-                    )}
+                    {bar.address && <p className="text-xs text-gray-400 mt-0.5">{bar.address}</p>}
                   </td>
                   <td className="px-4 py-3.5 text-gray-500 hidden sm:table-cell">
-                    {bar.neighborhood ?? "—"}
+                    {bar.neighborhood ?? "-"}
                   </td>
-                  <td className="px-4 py-3.5 text-right font-semibold text-orange-500">
-                    {formatPerPiece(bar.latest_price_cents, bar.latest_quantity)}
+                  <td className="px-4 py-3.5 text-right">
+                    {bar.has_bitterballen ? (
+                      <span className="font-semibold text-orange-500">
+                        {formatPerPiece(bar.latest_price_cents, bar.latest_quantity)}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-400">
+                        no bitterballen
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3.5 text-right text-gray-400 hidden md:table-cell text-xs">
-                    {formatDate(bar.latest_recorded_at)}
+                    {bar.has_bitterballen ? formatDate(bar.latest_recorded_at) : "-"}
                   </td>
                 </tr>
               ))
@@ -199,14 +258,33 @@ export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece,
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between mt-4 text-sm text-gray-500">
-        <span>
-          {neighborhood && filtered.length !== bars.length
-            ? `${sorted.length} of ${bars.length} bars`
-            : `${sorted.length} bar${sorted.length !== 1 ? "s" : ""}`}
-          {totalPages > 1 && ` · page ${safePage + 1} of ${totalPages}`}
-        </span>
+      <div className="flex items-start justify-between mt-4 text-sm text-gray-500 gap-3">
+        <div className="flex flex-col items-start gap-2">
+          <span>
+            {neighborhood && filtered.length !== allDisplayBars.length
+              ? `${sorted.length} of ${allDisplayBars.length} bars`
+              : `${sorted.length} bar${sorted.length !== 1 ? "s" : ""}`}
+            {totalPages > 1 && ` · page ${safePage + 1} of ${totalPages}`}
+          </span>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <span className="text-xs text-gray-400">no bitterballen</span>
+            <button
+              role="switch"
+              aria-checked={showAll}
+              onClick={handleToggleAll}
+              disabled={noBbLoading}
+              className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-50 ${
+                showAll ? "bg-orange-400" : "bg-gray-200"
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                  showAll ? "translate-x-[18px]" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </label>
+        </div>
         {totalPages > 1 && (
           <div className="flex gap-2">
             <button
