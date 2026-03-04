@@ -1,5 +1,7 @@
+export const revalidate = false; // cache indefinitely, invalidate via revalidatePath()
+
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
 import PriceHistoryChart from "@/components/PriceHistoryChart";
 import { getTranslations } from "next-intl/server";
@@ -17,10 +19,15 @@ async function getBarWithPrices(id: string) {
   return { ...bar, prices: prices ?? [] };
 }
 
+export async function generateStaticParams() {
+  const { data } = await supabase.from("bars").select("id");
+  return (data ?? []).map(({ id }) => ({ id }));
+}
+
 export default async function BarDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
 }) {
   const { id } = await params;
   const bar = await getBarWithPrices(id);

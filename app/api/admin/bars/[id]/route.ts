@@ -32,9 +32,11 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidatePath("/bars");
-  revalidatePath(`/bars/${id}`);
-  revalidatePath("/map");
+  for (const locale of ["en", "nl"]) {
+    revalidatePath(`/${locale}/bars`);
+    revalidatePath(`/${locale}/bars/${id}`);
+    revalidatePath(`/${locale}/map`);
+  }
 
   return NextResponse.json(data);
 }
@@ -54,9 +56,11 @@ export async function DELETE(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidatePath("/bars");
-  revalidatePath(`/bars/${id}`);
-  revalidatePath("/map");
+  for (const locale of ["en", "nl"]) {
+    revalidatePath(`/${locale}/bars`);
+    revalidatePath(`/${locale}/bars/${id}`);
+    revalidatePath(`/${locale}/map`);
+  }
 
   return NextResponse.json({ ok: true });
 }

@@ -1,4 +1,6 @@
-import Link from "next/link";
+export const revalidate = false; // cache indefinitely, invalidate via revalidatePath()
+
+import { Link } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
 
@@ -106,9 +108,9 @@ export default async function HomePage() {
         <p className="text-center text-gray-500 py-8">
           {t.rich("noBarsYet", {
             link: (chunks) => (
-              <Link href="/admin" className="text-orange-500 hover:underline">
+              <a href="/admin" className="text-orange-500 hover:underline">
                 {chunks}
-              </Link>
+              </a>
             ),
           })}
         </p>

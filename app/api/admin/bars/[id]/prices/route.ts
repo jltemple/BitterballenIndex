@@ -49,9 +49,11 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  revalidatePath("/bars");
-  revalidatePath(`/bars/${bar_id}`);
-  revalidatePath("/map");
+  for (const locale of ["en", "nl"]) {
+    revalidatePath(`/${locale}/bars`);
+    revalidatePath(`/${locale}/bars/${bar_id}`);
+    revalidatePath(`/${locale}/map`);
+  }
 
   return NextResponse.json(data, { status: 201 });
 }

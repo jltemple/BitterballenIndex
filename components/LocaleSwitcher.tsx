@@ -1,22 +1,18 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useTransition } from "react";
 
 export default function LocaleSwitcher() {
   const locale = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
-  async function switchLocale(next: string) {
-    await fetch("/api/locale", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ locale: next }),
-    });
+  function switchLocale(next: string) {
     startTransition(() => {
-      router.refresh();
+      router.replace(pathname, { locale: next });
     });
   }
 
@@ -25,7 +21,7 @@ export default function LocaleSwitcher() {
       <button
         onClick={() => switchLocale("en")}
         disabled={isPending}
-        className={`transition-colors ${locale === "en" ? "text-orange-500" : "text-gray-400 hover:text-gray-900"}`}
+        className={`cursor-pointer disabled:cursor-wait transition-colors ${locale === "en" ? "text-orange-500" : "text-gray-400 hover:text-gray-900"}`}
       >
         EN
       </button>
@@ -33,7 +29,7 @@ export default function LocaleSwitcher() {
       <button
         onClick={() => switchLocale("nl")}
         disabled={isPending}
-        className={`transition-colors ${locale === "nl" ? "text-orange-500" : "text-gray-400 hover:text-gray-900"}`}
+        className={`cursor-pointer disabled:cursor-wait transition-colors ${locale === "nl" ? "text-orange-500" : "text-gray-400 hover:text-gray-900"}`}
       >
         NL
       </button>

@@ -1,3 +1,5 @@
+export const revalidate = false; // cache indefinitely, invalidate via revalidatePath()
+
 import { supabase } from "@/lib/supabase";
 import MapLoader from "@/components/MapLoader";
 import { getTranslations } from "next-intl/server";

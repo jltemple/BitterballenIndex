@@ -1,4 +1,6 @@
-import Link from "next/link";
+export const revalidate = false; // cache indefinitely, invalidate via revalidatePath()
+
+import { Link } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
 
