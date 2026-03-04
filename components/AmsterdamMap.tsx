@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, GeoJSON, CircleMarker, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, CircleMarker, Tooltip, Pane } from "react-leaflet";
 import type { Feature, FeatureCollection } from "geojson";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -73,15 +73,15 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
     [heatmapData]
   );
 
-  // Base layer style — plain choropleth, no selection highlight (stable reference)
+  // Base layer — orange borders always, choropleth fill
   const styleNeighborhoodBase = useCallback((feature?: Feature) => {
     const name = feature?.properties?.naam ?? "";
     const data = priceByNeighborhood.get(name.toLowerCase());
     return {
       fillColor: getPriceColor(data?.avg_price_cents),
       fillOpacity: data ? 0.45 : 0.15,
-      color: "#9ca3af",
-      weight: 1,
+      color: "#fb923c",
+      weight: 2,
     };
   }, [priceByNeighborhood]);
 
@@ -95,11 +95,12 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
       : t("noDataTooltip");
     (layer as L.Path).bindTooltip(`<strong>${name}</strong><br/>${priceStr}`, { sticky: true });
     layer.on("click", () => {
-      setSelectedNeighborhood((prev) => (prev === name ? null : name));
+      // Any click while something is selected → deselect; click when nothing selected → select
+      setSelectedNeighborhood((prev) => (prev === null ? name : null));
     });
   }, [priceByNeighborhood, t]);
 
-  // Selected neighbourhood as its own FeatureCollection — rendered in a separate top layer
+  // Selected neighbourhood highlight layer
   const selectedFeature = useMemo((): FeatureCollection | null => {
     if (!selectedNeighborhood || !neighborhoodGeoJson) return null;
     return {
@@ -114,14 +115,17 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
     ? priceByNeighborhood.get(selectedNeighborhood.toLowerCase())
     : null;
 
-  // Only show dots for the selected neighbourhood
+  // Filter dots — all when nothing selected, focused neighbourhood when one is
   const visibleBars = selectedNeighborhood
     ? bars.filter((b) => b.neighborhood === selectedNeighborhood)
-    : [];
-
-  const visibleNoBitterballen = selectedNeighborhood
+    : bars;
+  const visibleNoBb = selectedNeighborhood
     ? noBitterballenBars.filter((b) => b.neighborhood === selectedNeighborhood)
-    : [];
+    : noBitterballenBars;
+
+  // Count for the status pill
+  const selectedBarCount = visibleBars.length;
+  const selectedNoBbCount = visibleNoBb.length;
 
   return (
     <div className="relative">
@@ -142,9 +146,9 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
           <div className="bg-white border border-orange-300 text-orange-500 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md whitespace-nowrap">
             {selectedNeighborhood}
             {(() => {
-              const total = visibleBars.length + visibleNoBitterballen.length;
+              const total = selectedBarCount + selectedNoBbCount;
               return total > 0
-                ? ` · ${visibleBars.length} ${t(visibleBars.length !== 1 ? "barPlural" : "barSingular")}${visibleNoBitterballen.length > 0 ? `, ${visibleNoBitterballen.length} no bb` : ""}`
+                ? ` · ${selectedBarCount} ${t(selectedBarCount !== 1 ? "barPlural" : "barSingular")}${selectedNoBbCount > 0 ? `, ${selectedNoBbCount} no bb` : ""}`
                 : ` · ${t("noBarsRecorded")}`;
             })()}
             <span className="text-gray-400 font-normal ml-1.5">— {t("clickDeselect")}</span>
@@ -166,7 +170,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
 
-        {/* Base neighbourhood choropleth — stable key, handles click/hover for all polygons */}
+        {/* Base neighbourhood choropleth */}
         {neighborhoodGeoJson && (
           <GeoJSON
             key="neighborhoods-base"
@@ -176,8 +180,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
           />
         )}
 
-        {/* Selected neighbourhood highlight — rendered AFTER base so its border is on top in SVG order.
-            pointer-events:none so mouse events fall through to the base layer below. */}
+        {/* Selected neighbourhood highlight — click deselects */}
         {selectedFeature && (
           <GeoJSON
             key={`selected-${selectedNeighborhood}`}
@@ -186,21 +189,23 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
               fillColor: getPriceColor(selectedData?.avg_price_cents),
               fillOpacity: 0.65,
               color: "#fb923c",
-              weight: 2.5,
+              weight: 3,
             })}
             onEachFeature={(_, layer) => {
-              layer.on("add", () => {
-                const el = (layer as L.Path).getElement();
-                if (el) el.setAttribute("pointer-events", "none");
-              });
+              layer.on("click", () => setSelectedNeighborhood(null));
             }}
           />
         )}
 
-        {/* No-bitterballen grey dots */}
-        {visibleNoBitterballen.map((bar) => (
+        {/* bar-dots: above overlayPane (400); bar-tooltips: above everything */}
+        <Pane name="bar-dots" style={{ zIndex: 450 }} />
+        <Pane name="bar-tooltips" style={{ zIndex: 800 }} />
+
+        {/* No-bitterballen grey dots — filtered to selected neighbourhood when one is active */}
+        {visibleNoBb.map((bar) => (
           <CircleMarker
             key={bar.id}
+            pane="bar-dots"
             center={[bar.lat, bar.lng]}
             radius={5}
             pathOptions={{
@@ -210,7 +215,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
               weight: 1.5,
             }}
           >
-            <Tooltip direction="top" offset={[0, -8]} permanent={false}>
+            <Tooltip pane="bar-tooltips" direction="top" offset={[0, -8]} permanent={false}>
               <strong>{bar.name}</strong>
               <br />
               <span style={{ color: "#9ca3af" }}>no bitterballen</span>
@@ -218,7 +223,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
           </CircleMarker>
         ))}
 
-        {/* Bar dots — rendered last, always on top of both polygon layers */}
+        {/* Bar dots — filtered to selected neighbourhood when one is active */}
         {visibleBars.map((bar) => {
           const perPieceCents =
             bar.latest_price_cents != null && bar.latest_quantity != null
@@ -233,6 +238,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
           return (
             <CircleMarker
               key={bar.id}
+              pane="bar-dots"
               center={[bar.lat, bar.lng]}
               radius={8}
               pathOptions={{
@@ -242,7 +248,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
                 weight: 2,
               }}
             >
-              <Tooltip direction="top" offset={[0, -10]} permanent={false}>
+              <Tooltip pane="bar-tooltips" direction="top" offset={[0, -10]} permanent={false}>
                 <strong>{bar.name}</strong>
                 <br />
                 {priceStr}
