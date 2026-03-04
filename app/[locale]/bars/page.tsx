@@ -1,5 +1,6 @@
 export const revalidate = false; // cache indefinitely, invalidate via revalidatePath()
 
+import { Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
 import BarsTable from "./BarsTable";
@@ -57,13 +58,19 @@ export default async function BarsPage() {
         <p className="text-gray-500">{t("noBarsYet")}</p>
       ) : (
         <>
-          <BarsTable
-            bars={withBitterballen}
-            colBar={t("colBar")}
-            colNeighbourhood={t("colNeighbourhood")}
-            colPerPiece={t("colPerPiece")}
-            colRecorded={t("colRecorded")}
-          />
+          <Suspense fallback={
+            <div className="h-24 flex items-center justify-center text-gray-400 text-sm">
+              loading…
+            </div>
+          }>
+            <BarsTable
+              bars={withBitterballen}
+              colBar={t("colBar")}
+              colNeighbourhood={t("colNeighbourhood")}
+              colPerPiece={t("colPerPiece")}
+              colRecorded={t("colRecorded")}
+            />
+          </Suspense>
           <NoBitterballenToggle bars={noBitterballen} />
         </>
       )}

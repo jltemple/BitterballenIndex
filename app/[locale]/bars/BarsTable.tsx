@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { useRouter, usePathname, Link } from "@/i18n/navigation";
 
 interface Bar {
   id: string;
@@ -30,7 +31,6 @@ function formatDate(iso: string | null) {
 
 interface Props {
   bars: Bar[];
-  // translated column headers passed from server component
   colBar: string;
   colNeighbourhood: string;
   colPerPiece: string;
@@ -38,21 +38,46 @@ interface Props {
 }
 
 export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece, colRecorded }: Props) {
-  const [sortField, setSortField] = useState<SortField>("price");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [page, setPage] = useState(0);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  function handleSort(field: SortField) {
-    if (field === sortField) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortField(field);
-      setSortDir("asc");
+  const sortField = (searchParams.get("sort") ?? "price") as SortField;
+  const sortDir = (searchParams.get("dir") ?? "asc") as SortDir;
+  const page = parseInt(searchParams.get("page") ?? "0", 10);
+  const neighborhood = searchParams.get("neighborhood") ?? "";
+
+  function setParams(updates: Record<string, string>) {
+    const params = new URLSearchParams(searchParams.toString());
+    for (const [k, v] of Object.entries(updates)) {
+      v ? params.set(k, v) : params.delete(k);
     }
-    setPage(0);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
-  const sorted = [...bars].sort((a, b) => {
+  function handleSort(field: SortField) {
+    const newDir = field === sortField ? (sortDir === "asc" ? "desc" : "asc") : "asc";
+    setParams({ sort: field, dir: newDir, page: "" });
+  }
+
+  function handleNeighborhood(value: string) {
+    setParams({ neighborhood: value, page: "" });
+  }
+
+  function handlePage(newPage: number) {
+    setParams({ page: newPage === 0 ? "" : String(newPage) });
+  }
+
+  const neighborhoods = useMemo(() => {
+    const set = new Set(bars.map((b) => b.neighborhood).filter(Boolean) as string[]);
+    return [...set].sort();
+  }, [bars]);
+
+  const filtered = neighborhood
+    ? bars.filter((b) => b.neighborhood === neighborhood)
+    : bars;
+
+  const sorted = [...filtered].sort((a, b) => {
     if (sortField === "price") {
       const aP =
         a.latest_price_cents != null && a.latest_quantity != null
@@ -69,21 +94,40 @@ export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece,
       : b.name.localeCompare(a.name);
   });
 
-  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
-  const paged = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const paged = sorted.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   function SortIcon({ field }: { field: SortField }) {
-    if (sortField !== field)
-      return <span className="ml-1 text-gray-300">↕</span>;
-    return (
-      <span className="ml-1 text-orange-500">
-        {sortDir === "asc" ? "↑" : "↓"}
-      </span>
-    );
+    if (sortField !== field) return <span className="ml-1 text-gray-300">↕</span>;
+    return <span className="ml-1 text-orange-500">{sortDir === "asc" ? "↑" : "↓"}</span>;
   }
 
   return (
     <div>
+      {/* Toolbar */}
+      <div className="flex items-center gap-3 mb-3">
+        <select
+          value={neighborhood}
+          onChange={(e) => handleNeighborhood(e.target.value)}
+          className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:border-orange-400 transition-colors"
+        >
+          <option value="">all neighbourhoods</option>
+          {neighborhoods.map((n) => (
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
+        {neighborhood && (
+          <button
+            onClick={() => handleNeighborhood("")}
+            className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            ✕ clear
+          </button>
+        )}
+      </div>
+
+      {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-500 text-xs tracking-wide">
@@ -115,61 +159,73 @@ export default function BarsTable({ bars, colBar, colNeighbourhood, colPerPiece,
             </tr>
           </thead>
           <tbody>
-            {paged.map((bar) => (
-              <tr
-                key={bar.id}
-                className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-4 py-3.5">
-                  <Link
-                    href={`/bars/${bar.id}`}
-                    prefetch={false}
-                    className="font-medium text-gray-900 hover:text-orange-500 transition-colors"
-                  >
-                    {bar.name}
-                  </Link>
-                  {bar.address && (
-                    <p className="text-xs text-gray-400 mt-0.5">{bar.address}</p>
-                  )}
-                </td>
-                <td className="px-4 py-3.5 text-gray-500 hidden sm:table-cell">
-                  {bar.neighborhood ?? "—"}
-                </td>
-                <td className="px-4 py-3.5 text-right font-semibold text-orange-500">
-                  {formatPerPiece(bar.latest_price_cents, bar.latest_quantity)}
-                </td>
-                <td className="px-4 py-3.5 text-right text-gray-400 hidden md:table-cell text-xs">
-                  {formatDate(bar.latest_recorded_at)}
+            {paged.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-8 text-center text-gray-400">
+                  no bars in this neighbourhood yet
                 </td>
               </tr>
-            ))}
+            ) : (
+              paged.map((bar) => (
+                <tr
+                  key={bar.id}
+                  className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-4 py-3.5">
+                    <Link
+                      href={`/bars/${bar.id}`}
+                      prefetch={false}
+                      className="font-medium text-gray-900 hover:text-orange-500 transition-colors"
+                    >
+                      {bar.name}
+                    </Link>
+                    {bar.address && (
+                      <p className="text-xs text-gray-400 mt-0.5">{bar.address}</p>
+                    )}
+                  </td>
+                  <td className="px-4 py-3.5 text-gray-500 hidden sm:table-cell">
+                    {bar.neighborhood ?? "—"}
+                  </td>
+                  <td className="px-4 py-3.5 text-right font-semibold text-orange-500">
+                    {formatPerPiece(bar.latest_price_cents, bar.latest_quantity)}
+                  </td>
+                  <td className="px-4 py-3.5 text-right text-gray-400 hidden md:table-cell text-xs">
+                    {formatDate(bar.latest_recorded_at)}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 text-sm text-gray-500">
-          <span>
-            {sorted.length} bars &middot; page {page + 1} of {totalPages}
-          </span>
+      {/* Pagination */}
+      <div className="flex items-center justify-between mt-4 text-sm text-gray-500">
+        <span>
+          {neighborhood && filtered.length !== bars.length
+            ? `${sorted.length} of ${bars.length} bars`
+            : `${sorted.length} bar${sorted.length !== 1 ? "s" : ""}`}
+          {totalPages > 1 && ` · page ${safePage + 1} of ${totalPages}`}
+        </span>
+        {totalPages > 1 && (
           <div className="flex gap-2">
             <button
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
+              onClick={() => handlePage(Math.max(0, safePage - 1))}
+              disabled={safePage === 0}
               className="px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-40 transition-colors"
             >
               ← prev
             </button>
             <button
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={page === totalPages - 1}
+              onClick={() => handlePage(Math.min(totalPages - 1, safePage + 1))}
+              disabled={safePage === totalPages - 1}
               className="px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-40 transition-colors"
             >
               next →
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
