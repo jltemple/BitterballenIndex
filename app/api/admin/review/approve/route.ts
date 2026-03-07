@@ -5,7 +5,8 @@ import { createServiceClient } from "@/lib/supabase";
 import { neighborhoodFromLatLng } from "@/lib/h3-server";
 
 interface ApproveBody {
-  osm_id: number;
+  id: string;
+  osm_id?: number | null;
   name: string;
   address: string | null;
   lat: number;
@@ -20,10 +21,10 @@ export async function POST(req: Request) {
   if (authError) return authError;
 
   const body = (await req.json()) as ApproveBody;
-  const { osm_id, name, address, lat, lng, website, price_euro, quantity } = body;
+  const { id, osm_id, name, address, lat, lng, website, price_euro, quantity } = body;
 
-  if (!osm_id || !name || price_euro <= 0) {
-    return NextResponse.json({ error: "osm_id, name, and price_euro required" }, { status: 400 });
+  if (!id || !name || price_euro <= 0) {
+    return NextResponse.json({ error: "id, name, and price_euro required" }, { status: 400 });
   }
 
   const db = createServiceClient();
@@ -32,7 +33,7 @@ export async function POST(req: Request) {
   // Insert bar
   const { data: bar, error: barError } = await db
     .from("bars")
-    .insert({ osm_id, name, address, lat, lng, website, neighborhood })
+    .insert({ osm_id: osm_id ?? null, name, address, lat, lng, website, neighborhood })
     .select("id")
     .single();
 
@@ -51,8 +52,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: priceError.message }, { status: 500 });
   }
 
-  // Mark as imported in discovered_venues
-  await db.from("discovered_venues").update({ scrape_status: "imported" }).eq("osm_id", osm_id);
+  // Mark submission as imported
+  await db.from("venue_submissions").update({ status: "imported" }).eq("id", id);
 
   for (const locale of ["en", "nl"]) {
     revalidatePath(`/${locale}/bars`);

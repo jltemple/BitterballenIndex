@@ -8,12 +8,13 @@ export async function GET() {
 
   const db = createServiceClient();
 
-  // Read from discovered_venues where scraping found nothing (or not yet scraped)
-  // price_found venues go to the Review tab instead
+  // Automation-sourced venues that haven't been scraped yet or had no price found
+  // (price_found venues go to the Review tab instead)
   const { data, error } = await db
-    .from("discovered_venues")
-    .select("osm_id, name, address, lat, lng, website, amenity")
-    .in("scrape_status", ["pending", "no_price"])
+    .from("venue_submissions")
+    .select("id, osm_id, name, address, lat, lng, website, amenity")
+    .eq("source", "automation")
+    .in("status", ["pending", "no_price"])
     .order("name");
 
   if (error) {

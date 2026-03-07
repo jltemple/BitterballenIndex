@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 interface OsmVenue {
+  id: string;
   osm_id: number;
   name: string;
   address: string | null;
@@ -30,8 +31,8 @@ const PAGE_SIZE = 20;
 
 export default function DiscoverPage() {
   const [venues, setVenues] = useState<OsmVenue[] | null>(null);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [prices, setPrices] = useState<Map<number, PriceEntry>>(new Map());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [prices, setPrices] = useState<Map<string, PriceEntry>>(new Map());
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export default function DiscoverPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  function toggleOne(id: number) {
+  function toggleOne(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
@@ -68,7 +69,7 @@ export default function DiscoverPage() {
   }
 
   function togglePageAll() {
-    const pageIds = pagedVenues.map((v) => v.osm_id);
+    const pageIds = pagedVenues.map((v) => v.id);
     const allChecked = pageIds.every((id) => selected.has(id));
     setSelected((prev) => {
       const next = new Set(prev);
@@ -77,11 +78,11 @@ export default function DiscoverPage() {
     });
   }
 
-  function setPrice(osm_id: number, field: "euro" | "qty", value: string) {
+  function setPrice(id: string, field: "euro" | "qty", value: string) {
     setPrices((prev) => {
       const next = new Map(prev);
-      const existing = next.get(osm_id) ?? { euro: "", qty: "6" };
-      next.set(osm_id, { ...existing, [field]: value });
+      const existing = next.get(id) ?? { euro: "", qty: "6" };
+      next.set(id, { ...existing, [field]: value });
       return next;
     });
   }
@@ -100,9 +101,9 @@ export default function DiscoverPage() {
     setStatus(null);
 
     const toImport = venues
-      .filter((v) => selected.has(v.osm_id))
+      .filter((v) => selected.has(v.id))
       .map((v) => {
-        const p = prices.get(v.osm_id);
+        const p = prices.get(v.id);
         const euro = parseFloat(p?.euro ?? "");
         const qty = parseInt(p?.qty ?? "6", 10);
         return {
@@ -125,7 +126,7 @@ export default function DiscoverPage() {
         ? `✓ imported ${json.imported} bar${json.imported !== 1 ? "s" : ""}, ${json.priced} with price`
         : `✓ imported ${json.imported} bar${json.imported !== 1 ? "s" : ""}`;
 
-      setVenues((prev) => prev?.filter((v) => !selected.has(v.osm_id)) ?? []);
+      setVenues((prev) => prev?.filter((v) => !selected.has(v.id)) ?? []);
       setPrices((prev) => { const next = new Map(prev); selected.forEach((id) => next.delete(id)); return next; });
       setSelected(new Set());
       setPage(0);
@@ -138,22 +139,22 @@ export default function DiscoverPage() {
   }
 
   async function dismiss(venue: OsmVenue) {
-    setVenues((prev) => prev?.filter((v) => v.osm_id !== venue.osm_id) ?? []);
-    setSelected((prev) => { const s = new Set(prev); s.delete(venue.osm_id); return s; });
+    setVenues((prev) => prev?.filter((v) => v.id !== venue.id) ?? []);
+    setSelected((prev) => { const s = new Set(prev); s.delete(venue.id); return s; });
     await fetch("/api/admin/discover/dismiss", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ osm_id: venue.osm_id }),
+      body: JSON.stringify({ id: venue.id }),
     });
   }
 
   async function markNoBitterballen(venue: OsmVenue) {
-    setVenues((prev) => prev?.filter((v) => v.osm_id !== venue.osm_id) ?? []);
-    setSelected((prev) => { const s = new Set(prev); s.delete(venue.osm_id); return s; });
+    setVenues((prev) => prev?.filter((v) => v.id !== venue.id) ?? []);
+    setSelected((prev) => { const s = new Set(prev); s.delete(venue.id); return s; });
     await fetch("/api/admin/discover/no-bitterballen", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ osm_id: venue.osm_id, name: venue.name, address: venue.address, lat: venue.lat, lng: venue.lng, website: venue.website }),
+      body: JSON.stringify({ id: venue.id, osm_id: venue.osm_id, name: venue.name, address: venue.address, lat: venue.lat, lng: venue.lng, website: venue.website }),
     });
     setStatus(`✓ "${venue.name}" added as no-bitterballen bar`);
   }
@@ -163,7 +164,7 @@ export default function DiscoverPage() {
     : (venues ?? []);
   const totalPages = Math.ceil(filteredVenues.length / PAGE_SIZE);
   const pagedVenues = filteredVenues.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-  const pageIds = pagedVenues.map((v) => v.osm_id);
+  const pageIds = pagedVenues.map((v) => v.id);
   const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
   const somePageSelected = pageIds.some((id) => selected.has(id)) && !allPageSelected;
   const withPrice = [...selected].filter((id) => {
@@ -261,20 +262,20 @@ export default function DiscoverPage() {
               </thead>
               <tbody>
                 {pagedVenues.map((v) => {
-                  const p = prices.get(v.osm_id);
+                  const p = prices.get(v.id);
                   const pp = perPiece(p);
                   return (
                     <tr
-                      key={v.osm_id}
+                      key={v.id}
                       className={`border-b border-gray-100 last:border-0 transition-colors ${
-                        selected.has(v.osm_id) ? "bg-orange-50/60" : "hover:bg-gray-50"
+                        selected.has(v.id) ? "bg-orange-50/60" : "hover:bg-gray-50"
                       }`}
                     >
                       <td className="px-3 py-2.5">
                         <input
                           type="checkbox"
-                          checked={selected.has(v.osm_id)}
-                          onChange={() => toggleOne(v.osm_id)}
+                          checked={selected.has(v.id)}
+                          onChange={() => toggleOne(v.id)}
                           className="accent-orange-500"
                         />
                       </td>
@@ -302,8 +303,8 @@ export default function DiscoverPage() {
                             type="number" min="0" step="0.01" placeholder="0.00"
                             value={p?.euro ?? ""}
                             onChange={(e) => {
-                              setPrice(v.osm_id, "euro", e.target.value);
-                              if (e.target.value) setSelected((s) => new Set(s).add(v.osm_id));
+                              setPrice(v.id, "euro", e.target.value);
+                              if (e.target.value) setSelected((s) => new Set(s).add(v.id));
                             }}
                             className="w-16 text-xs border border-gray-200 rounded px-1.5 py-1 text-gray-900 focus:outline-none focus:border-orange-400"
                           />
@@ -311,7 +312,7 @@ export default function DiscoverPage() {
                           <input
                             type="number" min="1" step="1" placeholder="6"
                             value={p?.qty ?? ""}
-                            onChange={(e) => setPrice(v.osm_id, "qty", e.target.value)}
+                            onChange={(e) => setPrice(v.id, "qty", e.target.value)}
                             className="w-10 text-xs border border-gray-200 rounded px-1.5 py-1 text-gray-900 focus:outline-none focus:border-orange-400"
                           />
                           {pp && <span className="text-xs text-orange-500 font-medium w-16">{pp}</span>}
