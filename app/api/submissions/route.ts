@@ -39,12 +39,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "address is required" }, { status: 400 });
   }
 
-  if (price_euro != null && price_euro <= 0) {
-    return NextResponse.json({ error: "price_euro must be greater than 0" }, { status: 400 });
+  if (!price_euro || price_euro <= 0) {
+    return NextResponse.json({ error: "price_euro is required and must be greater than 0" }, { status: 400 });
   }
 
-  const price_cents =
-    price_euro != null && price_euro > 0 ? Math.round(price_euro * 100) : null;
+  const price_cents = Math.round(price_euro * 100);
 
   const db = createServiceClient();
 
@@ -57,7 +56,7 @@ export async function POST(req: Request) {
       lng: lng ?? null,
       website: website?.trim() || null,
       price_cents,
-      quantity: quantity ?? 6,
+      quantity: quantity && quantity > 0 ? quantity : 6,
       context: notes?.trim() || null,
       source: "community",
       status: "pending",

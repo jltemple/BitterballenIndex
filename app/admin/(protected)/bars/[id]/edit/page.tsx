@@ -204,7 +204,7 @@ export default function EditBarPage() {
 
         {/* Address with geocode button */}
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">address</label>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">address *</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -212,6 +212,7 @@ export default function EditBarPage() {
               value={form.address}
               onChange={handleChange}
               placeholder="Leidseplein 12, Amsterdam"
+              required
               className="flex-1 bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
             />
             <button

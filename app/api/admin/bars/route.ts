@@ -13,8 +13,12 @@ export async function POST(req: Request) {
   // neighborhood comes from the form but we re-derive it server-side from coords
   let { neighborhood } = body as { neighborhood: string | null };
 
-  if (!name) {
+  if (!name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
+  }
+
+  if (!address?.trim()) {
+    return NextResponse.json({ error: "Address is required" }, { status: 400 });
   }
 
   // Server-side neighbourhood derivation overrides whatever the client sent

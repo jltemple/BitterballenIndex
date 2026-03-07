@@ -198,7 +198,9 @@ export default function SubmitPage() {
 
         {/* Price */}
         <div>
-          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">price you paid (optional)</label>
+          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">
+            price you paid <span className="text-orange-500">*</span>
+          </label>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 flex-1">
               <span className="text-gray-500 text-sm">€</span>
@@ -207,9 +209,10 @@ export default function SubmitPage() {
                 name="price_euro"
                 value={form.price_euro}
                 onChange={handleChange}
-                min="0"
+                min="0.01"
                 step="0.01"
                 placeholder="8.50"
+                required
                 className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
               />
             </div>
