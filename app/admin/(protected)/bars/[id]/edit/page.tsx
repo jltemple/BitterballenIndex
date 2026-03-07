@@ -19,6 +19,15 @@ type NominatimResult = {
   };
 };
 
+function Spinner({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={`animate-spin ${className}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+}
+
 export default function EditBarPage() {
   const router = useRouter();
   const params = useParams();
@@ -33,6 +42,7 @@ export default function EditBarPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [geocoding, setGeocoding] = useState(false);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
@@ -106,6 +116,29 @@ export default function EditBarPage() {
     await detectNeighborhoodFromCoords(parseFloat(form.lat), parseFloat(form.lng));
   }
 
+  async function geocodeAddress() {
+    const q = form.address.trim();
+    if (!q) return;
+    setGeocoding(true);
+    try {
+      const query = q.toLowerCase().includes("amsterdam") ? q : `${q}, Amsterdam`;
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=1&countrycodes=nl`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const results = await res.json();
+      if (results.length > 0) {
+        const r = results[0];
+        setForm((f) => ({ ...f, lat: r.lat, lng: r.lon }));
+        detectNeighborhoodFromCoords(parseFloat(r.lat), parseFloat(r.lon));
+      }
+    } catch {
+      // silently fail — admin can enter coords manually
+    } finally {
+      setGeocoding(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -169,7 +202,29 @@ export default function EditBarPage() {
           )}
         </div>
 
-        <Field label="address" name="address" value={form.address} onChange={handleChange} placeholder="Leidseplein 12, Amsterdam" />
+        {/* Address with geocode button */}
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">address</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              placeholder="Leidseplein 12, Amsterdam"
+              className="flex-1 bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
+            />
+            <button
+              type="button"
+              onClick={geocodeAddress}
+              disabled={!form.address.trim() || geocoding}
+              title="look up coordinates from this address"
+              className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 disabled:opacity-40 transition-colors"
+            >
+              {geocoding ? <Spinner className="h-3.5 w-3.5" /> : "locate →"}
+            </button>
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <Field label="latitude" name="lat" value={form.lat} onChange={handleChange} onBlur={detectNeighborhood} placeholder="52.3676" />
