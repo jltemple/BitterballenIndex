@@ -1,6 +1,54 @@
 export const revalidate = false; // cache indefinitely, invalidate via revalidatePath()
 
+import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+const HOME_META = {
+  en: {
+    title: "Bitterballen Index Amsterdam",
+    description:
+      "Tracking the price of bitterballen at bars across Amsterdam — find the best deal in the city.",
+  },
+  nl: {
+    title: "Bitterballen Index Amsterdam",
+    description:
+      "De prijs van bitterballen bijhouden in cafés in heel Amsterdam — vind altijd de beste deal.",
+  },
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const meta = HOME_META[locale as keyof typeof HOME_META] ?? HOME_META.en;
+  return {
+    title: meta.title,
+    description: meta.description,
+    alternates: {
+      canonical: `${SITE_URL}/${locale}`,
+      languages: {
+        en: `${SITE_URL}/en`,
+        nl: `${SITE_URL}/nl`,
+        "x-default": `${SITE_URL}/en`,
+      },
+    },
+    openGraph: {
+      title: meta.title,
+      description: meta.description,
+      url: `${SITE_URL}/${locale}`,
+      locale: locale === "nl" ? "nl_NL" : "en_US",
+      alternateLocale: locale === "nl" ? ["en_US"] : ["nl_NL"],
+    },
+    twitter: {
+      title: meta.title,
+      description: meta.description,
+    },
+  };
+}
 import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
 

@@ -1,6 +1,54 @@
 export const revalidate = false; // cache indefinitely, invalidate via revalidatePath()
 
+import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+const MAP_META = {
+  en: {
+    title: "Amsterdam Bitterballen Map",
+    description:
+      "Interactive map of bitterballen prices by neighbourhood in Amsterdam.",
+  },
+  nl: {
+    title: "Amsterdam Bitterballen Kaart",
+    description:
+      "Interactieve kaart van bitterballenprijzen per buurt in Amsterdam.",
+  },
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const meta = MAP_META[locale as keyof typeof MAP_META] ?? MAP_META.en;
+  return {
+    title: meta.title,
+    description: meta.description,
+    alternates: {
+      canonical: `${SITE_URL}/${locale}/map`,
+      languages: {
+        en: `${SITE_URL}/en/map`,
+        nl: `${SITE_URL}/nl/map`,
+        "x-default": `${SITE_URL}/en/map`,
+      },
+    },
+    openGraph: {
+      title: meta.title,
+      description: meta.description,
+      url: `${SITE_URL}/${locale}/map`,
+      locale: locale === "nl" ? "nl_NL" : "en_US",
+      alternateLocale: locale === "nl" ? ["en_US"] : ["nl_NL"],
+    },
+    twitter: {
+      title: meta.title,
+      description: meta.description,
+    },
+  };
+}
 import MapLoader from "@/components/MapLoader";
 import { getTranslations } from "next-intl/server";
 

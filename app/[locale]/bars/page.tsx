@@ -1,6 +1,54 @@
 export const revalidate = false; // cache indefinitely, invalidate via revalidatePath()
 
+import type { Metadata } from "next";
 import { Suspense } from "react";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+const BARS_META = {
+  en: {
+    title: "All Bars",
+    description:
+      "Compare bitterballen prices at bars across Amsterdam. Sorted by price per piece.",
+  },
+  nl: {
+    title: "Alle Cafés",
+    description:
+      "Vergelijk bitterballenprijzen in cafés in Amsterdam. Gesorteerd op prijs per stuk.",
+  },
+};
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const meta = BARS_META[locale as keyof typeof BARS_META] ?? BARS_META.en;
+  return {
+    title: meta.title,
+    description: meta.description,
+    alternates: {
+      canonical: `${SITE_URL}/${locale}/bars`,
+      languages: {
+        en: `${SITE_URL}/en/bars`,
+        nl: `${SITE_URL}/nl/bars`,
+        "x-default": `${SITE_URL}/en/bars`,
+      },
+    },
+    openGraph: {
+      title: meta.title,
+      description: meta.description,
+      url: `${SITE_URL}/${locale}/bars`,
+      locale: locale === "nl" ? "nl_NL" : "en_US",
+      alternateLocale: locale === "nl" ? ["en_US"] : ["nl_NL"],
+    },
+    twitter: {
+      title: meta.title,
+      description: meta.description,
+    },
+  };
+}
 import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
 import BarsTable from "./BarsTable";

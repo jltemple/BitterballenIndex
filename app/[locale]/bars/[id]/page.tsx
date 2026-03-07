@@ -1,6 +1,9 @@
 export const revalidate = false; // cache indefinitely, invalidate via revalidatePath()
 
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 import { Link } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
 import PriceHistoryChart from "@/components/PriceHistoryChart";
@@ -17,6 +20,54 @@ async function getBarWithPrices(id: string) {
     .order("recorded_at", { ascending: true });
 
   return { ...bar, prices: prices ?? [] };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}): Promise<Metadata> {
+  const { locale, id } = await params;
+  const bar = await getBarWithPrices(id);
+  if (!bar) return {};
+
+  const latest = bar.prices[bar.prices.length - 1];
+  const latestPerPiece = latest
+    ? (latest.price_cents / latest.quantity / 100).toFixed(2)
+    : null;
+
+  const suffix = bar.neighborhood ? ` · ${bar.neighborhood}, Amsterdam` : ", Amsterdam";
+  const description = latestPerPiece
+    ? locale === "nl"
+      ? `Bitterballen bij ${bar.name}: €${latestPerPiece}/st${suffix}.`
+      : `Bitterballen at ${bar.name}: €${latestPerPiece}/pc${suffix}.`
+    : locale === "nl"
+      ? `Bitterballenprijzen bij ${bar.name}, Amsterdam.`
+      : `Bitterballen prices at ${bar.name}, Amsterdam.`;
+
+  return {
+    title: bar.name,
+    description,
+    alternates: {
+      canonical: `${SITE_URL}/${locale}/bars/${id}`,
+      languages: {
+        en: `${SITE_URL}/en/bars/${id}`,
+        nl: `${SITE_URL}/nl/bars/${id}`,
+        "x-default": `${SITE_URL}/en/bars/${id}`,
+      },
+    },
+    openGraph: {
+      title: bar.name,
+      description,
+      url: `${SITE_URL}/${locale}/bars/${id}`,
+      locale: locale === "nl" ? "nl_NL" : "en_US",
+      alternateLocale: locale === "nl" ? ["en_US"] : ["nl_NL"],
+    },
+    twitter: {
+      title: bar.name,
+      description,
+    },
+  };
 }
 
 export async function generateStaticParams() {
