@@ -6,6 +6,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 const links = [
   { href: "/bars", key: "navBars" },
   { href: "/map", key: "navMap" },
+  { href: "/submit", key: "navSubmit" },
 ] as const;
 
 export default function PrimaryNav() {

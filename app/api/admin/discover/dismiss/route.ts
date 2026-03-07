@@ -6,19 +6,35 @@ export async function POST(req: Request) {
   const authError = await requireAdmin();
   if (authError) return authError;
 
-  const { osm_id } = (await req.json()) as { osm_id: number };
-  if (!osm_id) {
-    return NextResponse.json({ error: "osm_id required" }, { status: 400 });
+  const { id } = (await req.json()) as { id: string };
+  if (!id) {
+    return NextResponse.json({ error: "id required" }, { status: 400 });
   }
 
   const db = createServiceClient();
 
-  // Mark as dismissed in discovered_venues + insert to dismissed_osm_nodes
-  // (dismissed_osm_nodes is used by populate-venues.mjs to skip on next run)
-  await Promise.all([
-    db.from("discovered_venues").update({ scrape_status: "dismissed" }).eq("osm_id", osm_id),
-    db.from("dismissed_osm_nodes").upsert({ osm_id }, { onConflict: "osm_id", ignoreDuplicates: true }),
-  ]);
+  // Fetch the submission to get its osm_id (may be null for community submissions)
+  const { data: submission } = await db
+    .from("venue_submissions")
+    .select("osm_id")
+    .eq("id", id)
+    .single();
+
+  const ops: Promise<unknown>[] = [
+    db.from("venue_submissions").update({ status: "dismissed" }).eq("id", id),
+  ];
+
+  // For automation venues with an OSM id, also record in dismissed_osm_nodes
+  // so the populate script skips them on the next run
+  if (submission?.osm_id) {
+    ops.push(
+      db
+        .from("dismissed_osm_nodes")
+        .upsert({ osm_id: submission.osm_id }, { onConflict: "osm_id", ignoreDuplicates: true })
+    );
+  }
+
+  await Promise.all(ops);
 
   return NextResponse.json({ ok: true });
 }

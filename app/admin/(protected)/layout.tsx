@@ -21,6 +21,7 @@ export default async function AdminLayout({
         <div className="flex gap-4 text-sm items-center">
           <Link href="/admin/review" className="text-gray-500 hover:text-gray-900 transition-colors">review</Link>
           <Link href="/admin/discover" className="text-gray-500 hover:text-gray-900 transition-colors">discover</Link>
+          <Link href="/en/submit" className="text-gray-500 hover:text-gray-900 transition-colors">submit form ↗</Link>
           <Link href="/" className="text-gray-500 hover:text-gray-900 transition-colors">← public site</Link>
           <LogoutClientButton />
         </div>

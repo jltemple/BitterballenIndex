@@ -5,6 +5,7 @@ import { createServiceClient } from "@/lib/supabase";
 import { neighborhoodFromLatLng } from "@/lib/h3-server";
 
 interface OsmVenue {
+  id: string;
   osm_id: number;
   name: string;
   address: string | null;
@@ -60,12 +61,9 @@ export async function POST(req: Request) {
     await db.from("prices").insert(priceRows);
   }
 
-  // Mark as imported in discovered_venues
-  const importedOsmIds = venues.map((v) => v.osm_id);
-  await db
-    .from("discovered_venues")
-    .update({ scrape_status: "imported" })
-    .in("osm_id", importedOsmIds);
+  // Mark as imported in venue_submissions
+  const importedIds = venues.map((v) => v.id);
+  await db.from("venue_submissions").update({ status: "imported" }).in("id", importedIds);
 
   for (const locale of ["en", "nl"]) {
     revalidatePath(`/${locale}/bars`);

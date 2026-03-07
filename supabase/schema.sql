@@ -45,5 +45,24 @@ create policy "Public can read prices" on prices for select using (true);
 -- ALTER TABLE bars ADD COLUMN IF NOT EXISTS osm_id bigint;
 -- CREATE UNIQUE INDEX IF NOT EXISTS bars_osm_id_idx ON bars(osm_id) WHERE osm_id IS NOT NULL;
 -- CREATE TABLE IF NOT EXISTS dismissed_osm_nodes (osm_id bigint PRIMARY KEY, dismissed_at timestamptz DEFAULT now());
--- CREATE TABLE IF NOT EXISTS discovered_venues (osm_id bigint PRIMARY KEY, name text NOT NULL, address text, lat float NOT NULL, lng float NOT NULL, website text, amenity text, scrape_status text NOT NULL DEFAULT 'pending', scraped_price_cents integer, scraped_quantity integer NOT NULL DEFAULT 6, scrape_context text, last_scraped_at timestamptz, added_at timestamptz DEFAULT now());
--- CREATE INDEX IF NOT EXISTS discovered_venues_status_idx ON discovered_venues(scrape_status);
+-- See supabase/migrations/20260307_venue_submissions.sql for the venue_submissions table
+-- (renamed and extended from discovered_venues — run that migration on existing databases).
+--
+-- venue_submissions table (created by migration above):
+--   id               uuid PRIMARY KEY DEFAULT gen_random_uuid()
+--   osm_id           bigint UNIQUE (nullable — only set for automation-sourced venues)
+--   name             text NOT NULL
+--   address          text
+--   lat              float NOT NULL
+--   lng              float NOT NULL
+--   website          text
+--   amenity          text
+--   status           text NOT NULL DEFAULT 'pending'  -- pending | price_found | no_price | imported | dismissed
+--   price_cents      integer
+--   quantity         integer NOT NULL DEFAULT 6
+--   context          text   -- scraper excerpt or community notes
+--   updated_at       timestamptz
+--   created_at       timestamptz DEFAULT now()
+--   source           text NOT NULL DEFAULT 'automation'  -- automation | community
+--   submitter_name   text
+--   submitter_email  text

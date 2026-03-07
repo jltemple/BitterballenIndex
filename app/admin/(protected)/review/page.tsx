@@ -3,17 +3,21 @@
 import { useEffect, useState, useCallback } from "react";
 
 interface ReviewVenue {
-  osm_id: number;
+  id: string;
+  osm_id: number | null;
   name: string;
   address: string | null;
   lat: number;
   lng: number;
   website: string | null;
-  amenity: string;
-  scraped_price_cents: number;
-  scraped_quantity: number;
-  scrape_context: string | null;
-  last_scraped_at: string;
+  amenity: string | null;
+  source: "automation" | "community";
+  price_cents: number | null;
+  quantity: number;
+  context: string | null;
+  updated_at: string | null;
+  submitter_name: string | null;
+  submitter_email: string | null;
 }
 
 interface EditedPrice {
@@ -23,9 +27,9 @@ interface EditedPrice {
 
 export default function ReviewPage() {
   const [venues, setVenues] = useState<ReviewVenue[] | null>(null);
-  const [edits, setEdits] = useState<Map<number, EditedPrice>>(new Map());
+  const [edits, setEdits] = useState<Map<string, EditedPrice>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState<Set<number>>(new Set());
+  const [busy, setBusy] = useState<Set<string>>(new Set());
   const [status, setStatus] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -34,12 +38,12 @@ export default function ReviewPage() {
       const res = await fetch("/api/admin/review");
       const { venues: data } = await res.json();
       setVenues(data);
-      // Pre-fill edits from scraped data
-      const map = new Map<number, EditedPrice>();
+      // Pre-fill edits from existing price data (automation venues only)
+      const map = new Map<string, EditedPrice>();
       for (const v of data ?? []) {
-        map.set(v.osm_id, {
-          euro: (v.scraped_price_cents / 100).toFixed(2),
-          qty: String(v.scraped_quantity),
+        map.set(v.id, {
+          euro: v.price_cents ? (v.price_cents / 100).toFixed(2) : "",
+          qty: String(v.quantity ?? 6),
         });
       }
       setEdits(map);
@@ -52,17 +56,17 @@ export default function ReviewPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  function setEdit(osm_id: number, field: "euro" | "qty", value: string) {
+  function setEdit(id: string, field: "euro" | "qty", value: string) {
     setEdits((prev) => {
       const next = new Map(prev);
-      const existing = next.get(osm_id) ?? { euro: "", qty: "6" };
-      next.set(osm_id, { ...existing, [field]: value });
+      const existing = next.get(id) ?? { euro: "", qty: "6" };
+      next.set(id, { ...existing, [field]: value });
       return next;
     });
   }
 
-  function perPiece(osm_id: number): string | null {
-    const p = edits.get(osm_id);
+  function perPiece(id: string): string | null {
+    const p = edits.get(id);
     if (!p?.euro) return null;
     const euro = parseFloat(p.euro);
     const qty = parseInt(p.qty || "6", 10);
@@ -71,7 +75,7 @@ export default function ReviewPage() {
   }
 
   async function approve(venue: ReviewVenue) {
-    const p = edits.get(venue.osm_id);
+    const p = edits.get(venue.id);
     const euro = parseFloat(p?.euro ?? "");
     const qty = parseInt(p?.qty ?? "6", 10);
     if (isNaN(euro) || euro <= 0) {
@@ -79,7 +83,7 @@ export default function ReviewPage() {
       return;
     }
 
-    setBusy((prev) => new Set(prev).add(venue.osm_id));
+    setBusy((prev) => new Set(prev).add(venue.id));
     setStatus(null);
 
     try {
@@ -87,6 +91,7 @@ export default function ReviewPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: venue.id,
           osm_id: venue.osm_id,
           name: venue.name,
           address: venue.address,
@@ -99,42 +104,50 @@ export default function ReviewPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error);
-      setVenues((prev) => prev?.filter((v) => v.osm_id !== venue.osm_id) ?? []);
+      setVenues((prev) => prev?.filter((v) => v.id !== venue.id) ?? []);
       setStatus(`✓ "${venue.name}" approved and added to bars`);
     } catch (e) {
       setStatus(`error: ${e instanceof Error ? e.message : e}`);
     } finally {
-      setBusy((prev) => { const s = new Set(prev); s.delete(venue.osm_id); return s; });
+      setBusy((prev) => { const s = new Set(prev); s.delete(venue.id); return s; });
     }
   }
 
   async function skip(venue: ReviewVenue) {
-    setBusy((prev) => new Set(prev).add(venue.osm_id));
+    setBusy((prev) => new Set(prev).add(venue.id));
     await fetch("/api/admin/discover/dismiss", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ osm_id: venue.osm_id }),
+      body: JSON.stringify({ id: venue.id }),
     });
-    setVenues((prev) => prev?.filter((v) => v.osm_id !== venue.osm_id) ?? []);
-    setBusy((prev) => { const s = new Set(prev); s.delete(venue.osm_id); return s; });
+    setVenues((prev) => prev?.filter((v) => v.id !== venue.id) ?? []);
+    setBusy((prev) => { const s = new Set(prev); s.delete(venue.id); return s; });
   }
 
   async function markNoBitterballen(venue: ReviewVenue) {
-    setBusy((prev) => new Set(prev).add(venue.osm_id));
+    setBusy((prev) => new Set(prev).add(venue.id));
     setStatus(null);
     try {
       const res = await fetch("/api/admin/discover/no-bitterballen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ osm_id: venue.osm_id, name: venue.name, address: venue.address, lat: venue.lat, lng: venue.lng, website: venue.website }),
+        body: JSON.stringify({
+          id: venue.id,
+          osm_id: venue.osm_id,
+          name: venue.name,
+          address: venue.address,
+          lat: venue.lat,
+          lng: venue.lng,
+          website: venue.website,
+        }),
       });
       if (!res.ok) throw new Error((await res.json()).error);
-      setVenues((prev) => prev?.filter((v) => v.osm_id !== venue.osm_id) ?? []);
+      setVenues((prev) => prev?.filter((v) => v.id !== venue.id) ?? []);
       setStatus(`✓ "${venue.name}" added as no-bitterballen bar`);
     } catch (e) {
       setStatus(`error: ${e instanceof Error ? e.message : e}`);
     } finally {
-      setBusy((prev) => { const s = new Set(prev); s.delete(venue.osm_id); return s; });
+      setBusy((prev) => { const s = new Set(prev); s.delete(venue.id); return s; });
     }
   }
 
@@ -142,10 +155,10 @@ export default function ReviewPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">review scraped prices</h1>
+          <h1 className="text-xl font-bold text-gray-900">review submissions</h1>
           {venues !== null && !loading && (
             <p className="text-sm text-gray-400 mt-0.5">
-              {venues.length} venue{venues.length !== 1 ? "s" : ""} with prices found by scraper
+              {venues.length} venue{venues.length !== 1 ? "s" : ""} pending review
             </p>
           )}
         </div>
@@ -168,22 +181,38 @@ export default function ReviewPage() {
         <div className="text-sm text-gray-400 py-12 text-center">loading…</div>
       ) : venues?.length === 0 ? (
         <div className="text-sm text-gray-400 py-12 text-center">
-          no prices awaiting review — run <code className="bg-gray-100 px-1 rounded">node --env-file=.env.local scripts/scrape-prices.mjs</code> to find more
+          no submissions awaiting review — run <code className="bg-gray-100 px-1 rounded">node --env-file=.env.local scripts/scrape-prices.mjs</code> to find more, or share the public submit form
         </div>
       ) : (
         <div className="space-y-3">
           {venues!.map((v) => {
-            const pp = perPiece(v.osm_id);
-            const isBusy = busy.has(v.osm_id);
+            const pp = perPiece(v.id);
+            const isBusy = busy.has(v.id);
+            const isCommunity = v.source === "community";
             return (
-              <div key={v.osm_id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm space-y-3">
+              <div key={v.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm space-y-3">
                 {/* Header row */}
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-semibold text-gray-900">{v.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-gray-900">{v.name}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        isCommunity
+                          ? "bg-blue-50 text-blue-600"
+                          : "bg-gray-100 text-gray-500"
+                      }`}>
+                        {isCommunity ? "community" : "scraper"}
+                      </span>
+                    </div>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {v.address ?? "no address"} · {v.amenity}
+                      {v.address ?? "no address"}{v.amenity ? ` · ${v.amenity}` : ""}
                     </p>
+                    {isCommunity && (v.submitter_name || v.submitter_email) && (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        submitted by {v.submitter_name ?? v.submitter_email}
+                        {v.submitter_name && v.submitter_email && ` (${v.submitter_email})`}
+                      </p>
+                    )}
                   </div>
                   {v.website && (
                     <a
@@ -197,10 +226,10 @@ export default function ReviewPage() {
                   )}
                 </div>
 
-                {/* Scraped context */}
-                {v.scrape_context && (
+                {/* Context (scrape excerpt or community notes) */}
+                {v.context && (
                   <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2 font-mono leading-relaxed">
-                    …{v.scrape_context.trim()}…
+                    …{v.context.trim()}…
                   </p>
                 )}
 
@@ -212,8 +241,8 @@ export default function ReviewPage() {
                       type="number"
                       min="0"
                       step="0.01"
-                      value={edits.get(v.osm_id)?.euro ?? ""}
-                      onChange={(e) => setEdit(v.osm_id, "euro", e.target.value)}
+                      value={edits.get(v.id)?.euro ?? ""}
+                      onChange={(e) => setEdit(v.id, "euro", e.target.value)}
                       className="w-20 text-sm border border-gray-200 rounded px-2 py-1 text-gray-900 focus:outline-none focus:border-orange-400"
                     />
                     <span className="text-xs text-gray-400">×</span>
@@ -221,8 +250,8 @@ export default function ReviewPage() {
                       type="number"
                       min="1"
                       step="1"
-                      value={edits.get(v.osm_id)?.qty ?? ""}
-                      onChange={(e) => setEdit(v.osm_id, "qty", e.target.value)}
+                      value={edits.get(v.id)?.qty ?? ""}
+                      onChange={(e) => setEdit(v.id, "qty", e.target.value)}
                       className="w-14 text-sm border border-gray-200 rounded px-2 py-1 text-gray-900 focus:outline-none focus:border-orange-400"
                     />
                     {pp && <span className="text-sm text-orange-500 font-semibold">{pp}</span>}
