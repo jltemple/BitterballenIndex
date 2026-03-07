@@ -27,8 +27,6 @@ export default function SubmitPage() {
     price_euro: "",
     quantity: "6",
     notes: "",
-    submitter_name: "",
-    submitter_email: "",
   });
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
   const [submitState, setSubmitState] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -85,8 +83,6 @@ export default function SubmitPage() {
       price_euro: form.price_euro ? parseFloat(form.price_euro) : undefined,
       quantity: form.quantity ? parseInt(form.quantity, 10) : undefined,
       notes: form.notes.trim() || undefined,
-      submitter_name: form.submitter_name.trim() || undefined,
-      submitter_email: form.submitter_email.trim() || undefined,
     };
 
     try {
@@ -118,7 +114,7 @@ export default function SubmitPage() {
         </p>
         <button
           onClick={() => {
-            setForm({ bar_name: "", address: "", lat: "", lng: "", website: "", price_euro: "", quantity: "6", notes: "", submitter_name: "", submitter_email: "" });
+            setForm({ bar_name: "", address: "", lat: "", lng: "", website: "", price_euro: "", quantity: "6", notes: "" });
             setSubmitState("idle");
           }}
           className="text-sm text-orange-500 hover:underline"
@@ -240,34 +236,6 @@ export default function SubmitPage() {
             placeholder="e.g. happy hour price, only on weekends, etc."
             className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400 resize-none"
           />
-        </div>
-
-        <div className="border-t border-gray-100 pt-4 space-y-4">
-          <p className="text-xs text-gray-400">Your contact details are optional and only visible to our admins.</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">your name</label>
-              <input
-                type="text"
-                name="submitter_name"
-                value={form.submitter_name}
-                onChange={handleChange}
-                placeholder="optional"
-                className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">email</label>
-              <input
-                type="email"
-                name="submitter_email"
-                value={form.submitter_email}
-                onChange={handleChange}
-                placeholder="optional"
-                className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
-              />
-            </div>
-          </div>
         </div>
 
         {submitState === "error" && (

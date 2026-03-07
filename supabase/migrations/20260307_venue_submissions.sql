@@ -31,9 +31,7 @@ ALTER TABLE discovered_venues RENAME COLUMN added_at            TO created_at;
 ALTER TABLE discovered_venues RENAME TO venue_submissions;
 
 -- 6. Add community-submission columns
-ALTER TABLE venue_submissions ADD COLUMN source          TEXT NOT NULL DEFAULT 'automation';
-ALTER TABLE venue_submissions ADD COLUMN submitter_name  TEXT;
-ALTER TABLE venue_submissions ADD COLUMN submitter_email TEXT;
+ALTER TABLE venue_submissions ADD COLUMN source TEXT NOT NULL DEFAULT 'automation';
 
 -- 7. Re-create index under new names
 DROP INDEX IF EXISTS discovered_venues_status_idx;

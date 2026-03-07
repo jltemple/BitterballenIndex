@@ -11,8 +11,6 @@ interface SubmissionBody {
   price_euro?: number;
   quantity?: number;
   notes?: string;
-  submitter_name?: string;
-  submitter_email?: string;
 }
 
 export async function POST(req: Request) {
@@ -32,8 +30,6 @@ export async function POST(req: Request) {
     price_euro,
     quantity,
     notes,
-    submitter_name,
-    submitter_email,
   } = body;
 
   if (!bar_name?.trim()) {
@@ -64,8 +60,6 @@ export async function POST(req: Request) {
       price_cents,
       quantity: quantity ?? 6,
       context: notes?.trim() || null,
-      submitter_name: submitter_name?.trim() || null,
-      submitter_email: submitter_email?.trim() || null,
       source: "community",
       status: "pending",
     })

@@ -16,8 +16,6 @@ interface ReviewVenue {
   quantity: number;
   context: string | null;
   updated_at: string | null;
-  submitter_name: string | null;
-  submitter_email: string | null;
 }
 
 interface EditedPrice {
@@ -207,12 +205,7 @@ export default function ReviewPage() {
                     <p className="text-xs text-gray-400 mt-0.5">
                       {v.address ?? "no address"}{v.amenity ? ` · ${v.amenity}` : ""}
                     </p>
-                    {isCommunity && (v.submitter_name || v.submitter_email) && (
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        submitted by {v.submitter_name ?? v.submitter_email}
-                        {v.submitter_name && v.submitter_email && ` (${v.submitter_email})`}
-                      </p>
-                    )}
+
                   </div>
                   {v.website && (
                     <a
