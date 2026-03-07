@@ -44,12 +44,23 @@ const PALETTES = {
   cb:     { cheap: "#0072B2", mid: "#E69F00", expensive: "#CC79A7", noData: "#d1d5db" },
 } as const;
 
+/** Hex color — used for dots, legend swatches, tooltips */
 function getPriceColor(perPieceCents: number | undefined, colorblind: boolean): string {
   const p = colorblind ? PALETTES.cb : PALETTES.normal;
   if (perPieceCents === undefined) return p.noData;
   if (perPieceCents < 133) return p.cheap;
   if (perPieceCents < 150) return p.mid;
   return p.expensive;
+}
+
+/** Polygon fill — returns url(#pattern) in accessible mode, hex otherwise.
+ *  No-data areas stay as a plain grey hex (patterns on empty regions add noise). */
+function getPolygonFill(perPieceCents: number | undefined, colorblind: boolean): string {
+  if (!colorblind) return getPriceColor(perPieceCents, false);
+  if (perPieceCents === undefined) return PALETTES.cb.noData;
+  if (perPieceCents < 133) return "url(#cb-cheap)";
+  if (perPieceCents < 150) return "url(#cb-mid)";
+  return "url(#cb-expensive)";
 }
 
 export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [] }: Props) {
@@ -72,10 +83,10 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
 
   const palette = colorblind ? PALETTES.cb : PALETTES.normal;
   const legend = [
-    { color: palette.cheap,     label: t("legendTier1") },
-    { color: palette.mid,       label: t("legendTier2") },
-    { color: palette.expensive, label: t("legendTier3") },
-    { color: palette.noData,    label: t("legendNoData") },
+    { color: palette.cheap,     patternId: "cb-cheap",     label: t("legendTier1") },
+    { color: palette.mid,       patternId: "cb-mid",       label: t("legendTier2") },
+    { color: palette.expensive, patternId: "cb-expensive", label: t("legendTier3") },
+    { color: palette.noData,    patternId: null,            label: t("legendNoData") },
   ];
 
   useEffect(() => {
@@ -95,8 +106,10 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
     const name = feature?.properties?.naam ?? "";
     const data = priceByNeighborhood.get(name.toLowerCase());
     return {
-      fillColor: getPriceColor(data?.avg_price_cents, colorblind),
-      fillOpacity: data ? 0.45 : 0.15,
+      fillColor: getPolygonFill(data?.avg_price_cents, colorblind),
+      // Patterns need fillOpacity:1 (they bake in their own transparency via the rect fillOpacity).
+      // No-data areas stay at 0.15 regardless of mode — they're plain grey, not patterns.
+      fillOpacity: colorblind && data ? 1 : (data ? 0.45 : 0.15),
       color: "#fb923c",
       weight: 2,
     };
@@ -180,12 +193,47 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
 
   return (
     <div className="relative">
+      {/* SVG pattern defs for accessible mode — zero-size, always in DOM.
+          Browsers resolve url(#id) document-wide, so Leaflet fills can reference
+          these patterns even though they live in a separate <svg> element. */}
+      <svg
+        width="0"
+        height="0"
+        aria-hidden="true"
+        style={{ position: "absolute", overflow: "hidden", pointerEvents: "none" }}
+      >
+        <defs>
+          {/* Cheap — horizontal lines */}
+          <pattern id="cb-cheap" patternUnits="userSpaceOnUse" width="7" height="7">
+            <rect width="7" height="7" fill="#0072B2" fillOpacity="0.2" />
+            <line x1="0" y1="3.5" x2="7" y2="3.5" stroke="#0072B2" strokeWidth="1.5" />
+          </pattern>
+          {/* Mid — dots */}
+          <pattern id="cb-mid" patternUnits="userSpaceOnUse" width="9" height="9">
+            <rect width="9" height="9" fill="#E69F00" fillOpacity="0.2" />
+            <circle cx="4.5" cy="4.5" r="2.5" fill="#E69F00" />
+          </pattern>
+          {/* Expensive — diagonal lines */}
+          <pattern id="cb-expensive" patternUnits="userSpaceOnUse" width="8" height="8">
+            <rect width="8" height="8" fill="#CC79A7" fillOpacity="0.2" />
+            <line x1="0" y1="0" x2="8" y2="8" stroke="#CC79A7" strokeWidth="2" />
+            <line x1="-4" y1="4" x2="4" y2="12" stroke="#CC79A7" strokeWidth="2" />
+            <line x1="4" y1="-4" x2="12" y2="4" stroke="#CC79A7" strokeWidth="2" />
+          </pattern>
+        </defs>
+      </svg>
+
       {/* Legend */}
       <div className="absolute top-4 right-4 z-[1000] bg-white rounded-xl border border-gray-200 p-3 text-xs space-y-1.5 shadow-md">
         <p className="font-semibold text-gray-500 tracking-wide mb-2 text-[10px]">{t("legendTitle")}</p>
-        {legend.map(({ color, label }) => (
-          <div key={color} className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 rounded-sm inline-block shrink-0" style={{ backgroundColor: color }} />
+        {legend.map(({ color, patternId, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <svg width="14" height="14" className="shrink-0" style={{ borderRadius: 2, overflow: "hidden" }}>
+              <rect
+                width="14" height="14"
+                fill={colorblind && patternId ? `url(#${patternId})` : color}
+              />
+            </svg>
             <span className="text-gray-600">{label}</span>
           </div>
         ))}
@@ -232,7 +280,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
             interactive={false}
             style={() => ({
               fillColor: "#6b7280",
-              fillOpacity: 0.42,
+              fillOpacity: 0.18,
               stroke: false,
               weight: 0,
             })}
@@ -255,8 +303,8 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
             key={`selected-${selectedNeighborhood}-${colorblind}`}
             data={selectedFeature}
             style={() => ({
-              fillColor: getPriceColor(selectedData?.avg_price_cents, colorblind),
-              fillOpacity: 0.65,
+              fillColor: getPolygonFill(selectedData?.avg_price_cents, colorblind),
+              fillOpacity: colorblind ? 1 : 0.65,
               color: "#fb923c",
               weight: 3,
             })}
@@ -351,7 +399,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
               }`}
             />
           </span>
-          colorblind mode
+          accessible colors
         </button>
       </div>
     </div>
