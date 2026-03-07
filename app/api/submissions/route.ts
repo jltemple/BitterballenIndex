@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase";
 
 interface SubmissionBody {
   bar_name: string;
-  address?: string;
+  address: string;
   lat?: number;
   lng?: number;
   website?: string;
@@ -35,6 +35,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bar_name is required" }, { status: 400 });
   }
 
+  if (!address?.trim()) {
+    return NextResponse.json({ error: "address is required" }, { status: 400 });
+  }
+
   if (price_euro != null && price_euro <= 0) {
     return NextResponse.json({ error: "price_euro must be greater than 0" }, { status: 400 });
   }
@@ -48,7 +52,7 @@ export async function POST(req: Request) {
     .from("venue_submissions")
     .insert({
       name: bar_name.trim(),
-      address: address?.trim() || null,
+      address: address.trim(),
       lat: lat ?? null,
       lng: lng ?? null,
       website: website?.trim() || null,

@@ -76,7 +76,7 @@ export default function SubmitPage() {
 
     const body = {
       bar_name: form.bar_name.trim(),
-      address: form.address.trim() || undefined,
+      address: form.address.trim(),
       lat: form.lat ? parseFloat(form.lat) : undefined,
       lng: form.lng ? parseFloat(form.lng) : undefined,
       website: form.website.trim() || undefined,
@@ -170,13 +170,16 @@ export default function SubmitPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">address</label>
+          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">
+            address <span className="text-orange-500">*</span>
+          </label>
           <input
             type="text"
             name="address"
             value={form.address}
             onChange={handleChange}
             placeholder="Leidseplein 12, Amsterdam"
+            required
             className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
           />
         </div>
