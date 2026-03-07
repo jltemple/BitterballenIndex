@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
-import { neighborhoodFromLatLng } from "@/lib/h3-server";
 
 interface SubmissionBody {
   bar_name: string;
@@ -40,9 +39,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "price_euro must be greater than 0" }, { status: 400 });
   }
 
-  const neighborhood =
-    lat != null && lng != null ? (neighborhoodFromLatLng(lat, lng) ?? null) : null;
-
   const price_cents =
     price_euro != null && price_euro > 0 ? Math.round(price_euro * 100) : null;
 
@@ -55,7 +51,6 @@ export async function POST(req: Request) {
       address: address?.trim() || null,
       lat: lat ?? null,
       lng: lng ?? null,
-      neighborhood,
       website: website?.trim() || null,
       price_cents,
       quantity: quantity ?? 6,
