@@ -6,7 +6,7 @@ import { neighborhoodFromLatLng } from "@/lib/h3-server";
 
 interface Body {
   id: string;
-  osm_id: number;
+  osm_id: number | null;
   name: string;
   address: string | null;
   lat: number;

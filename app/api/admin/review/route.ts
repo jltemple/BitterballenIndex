@@ -11,7 +11,7 @@ export async function GET() {
   // Show automation venues with a scraped price found, plus all pending community submissions
   const { data, error } = await db
     .from("venue_submissions")
-    .select("id, osm_id, name, address, lat, lng, website, amenity, source, price_cents, quantity, context, updated_at, submitter_name, submitter_email")
+    .select("id, osm_id, name, address, lat, lng, website, amenity, source, price_cents, quantity, context, updated_at")
     .or("status.eq.price_found,and(source.eq.community,status.eq.pending)")
     .order("created_at", { ascending: true });
 
