@@ -58,7 +58,7 @@ async function getStats() {
     .select("bar_id, price_cents, quantity, recorded_at")
     .order("recorded_at", { ascending: false });
 
-  const { data: bars } = await supabase.from("bars").select("id, name");
+  const { data: bars } = await supabase.from("bars").select("id, name").eq("has_bitterballen", true);
 
   if (!prices || !bars) return null;
 
