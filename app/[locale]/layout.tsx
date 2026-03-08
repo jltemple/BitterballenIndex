@@ -31,8 +31,8 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <header className="bg-white border-b border-gray-200">
             <nav className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-              <Link href="/" className="flex items-center gap-2.5 font-bold text-lg">
-                <span className="w-7 h-7 bg-orange-500 rounded-lg flex items-center justify-center text-white text-xs font-black leading-none">bi</span>
+              <Link href="/" className="flex items-center gap-2 sm:gap-2.5 font-bold text-sm sm:text-lg">
+                <span className="w-6 h-6 sm:w-7 sm:h-7 bg-orange-500 rounded-lg flex items-center justify-center text-white text-xs font-black leading-none shrink-0">bi</span>
                 <span className="text-gray-900">{t("brand")}</span>
               </Link>
               <div className="flex items-center">

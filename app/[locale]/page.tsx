@@ -71,6 +71,8 @@ async function getStats() {
 
   const activePrices = Array.from(latestByBar.values()).map((p) => ({
     bar_id: p.bar_id,
+    price_cents: p.price_cents,
+    quantity: p.quantity,
     per_piece_cents: Math.round(p.price_cents / p.quantity),
   }));
 
@@ -86,15 +88,21 @@ async function getStats() {
   return {
     barCount: bars.length,
     cityAvg,
-    cheapest: cheapestBar ? { name: cheapestBar.name, id: cheapestBar.id, per_piece_cents: sorted[0].per_piece_cents } : null,
+    cheapest: cheapestBar
+      ? { name: cheapestBar.name, id: cheapestBar.id, per_piece_cents: sorted[0].per_piece_cents, price_cents: sorted[0].price_cents, quantity: sorted[0].quantity }
+      : null,
     mostExpensive: expensiveBar
-      ? { name: expensiveBar.name, id: expensiveBar.id, per_piece_cents: sorted[sorted.length - 1].per_piece_cents }
+      ? { name: expensiveBar.name, id: expensiveBar.id, per_piece_cents: sorted[sorted.length - 1].per_piece_cents, price_cents: sorted[sorted.length - 1].price_cents, quantity: sorted[sorted.length - 1].quantity }
       : null,
   };
 }
 
-function formatPrice(cents: number) {
+function formatPerPiece(cents: number) {
   return `€${(cents / 100).toFixed(2)}/pc`;
+}
+
+function formatTotal(price_cents: number, quantity: number) {
+  return `€${(price_cents / 100).toFixed(2)} for ${quantity}`;
 }
 
 export default async function HomePage() {
@@ -136,16 +144,22 @@ export default async function HomePage() {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard label={t("barsTracked")} value={stats.barCount.toString()} />
-          <StatCard label={t("cityAverage")} value={stats.cityAvg ? formatPrice(stats.cityAvg) : "—"} />
+          <StatCard
+            label={t("cityAverage")}
+            value={stats.cityAvg ? formatPerPiece(stats.cityAvg) : "—"}
+            subValue={stats.cityAvg ? `≈${formatTotal(Math.round(stats.cityAvg * 6), 6)}` : undefined}
+          />
           <StatCard
             label={t("cheapest")}
-            value={stats.cheapest ? formatPrice(stats.cheapest.per_piece_cents) : "—"}
+            value={stats.cheapest ? formatPerPiece(stats.cheapest.per_piece_cents) : "—"}
+            subValue={stats.cheapest ? formatTotal(stats.cheapest.price_cents, stats.cheapest.quantity) : undefined}
             sub={stats.cheapest?.name}
             href={stats.cheapest ? `/bars/${stats.cheapest.id}` : undefined}
           />
           <StatCard
             label={t("mostExpensive")}
-            value={stats.mostExpensive ? formatPrice(stats.mostExpensive.per_piece_cents) : "—"}
+            value={stats.mostExpensive ? formatPerPiece(stats.mostExpensive.per_piece_cents) : "—"}
+            subValue={stats.mostExpensive ? formatTotal(stats.mostExpensive.price_cents, stats.mostExpensive.quantity) : undefined}
             sub={stats.mostExpensive?.name}
             href={stats.mostExpensive ? `/bars/${stats.mostExpensive.id}` : undefined}
           />
@@ -170,11 +184,13 @@ export default async function HomePage() {
 function StatCard({
   label,
   value,
+  subValue,
   sub,
   href,
 }: {
   label: string;
   value: string;
+  subValue?: string;
   sub?: string;
   href?: string;
 }) {
@@ -182,6 +198,7 @@ function StatCard({
     <div className="bg-white rounded-xl border border-gray-200 p-5 text-center hover:border-orange-400/40 hover:-translate-y-1 transition-all shadow-sm">
       <p className="text-xs font-semibold text-gray-500 tracking-wide mb-2">{label}</p>
       <p className="text-2xl font-bold text-orange-500">{value}</p>
+      {subValue && <p className="text-xs text-gray-400 mt-0.5">{subValue}</p>}
       {sub && <p className="text-xs text-gray-400 mt-1.5 truncate">{sub}</p>}
     </div>
   );

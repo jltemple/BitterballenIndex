@@ -3,10 +3,9 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 
-const links = [
+const navLinks = [
   { href: "/bars", key: "navBars" },
   { href: "/map", key: "navMap" },
-  { href: "/submit", key: "navSubmit" },
 ] as const;
 
 export default function PrimaryNav() {
@@ -14,8 +13,8 @@ export default function PrimaryNav() {
   const t = useTranslations("layout");
 
   return (
-    <div className="flex gap-1 text-sm font-medium self-stretch">
-      {links.map(({ href, key }) => {
+    <div className="flex items-center gap-1 text-sm font-medium self-stretch">
+      {navLinks.map(({ href, key }) => {
         const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
         return (
@@ -23,7 +22,7 @@ export default function PrimaryNav() {
             key={href}
             href={href}
             prefetch={false}
-            className={`inline-flex items-center px-3 border-b-2 -mb-px transition-all ${
+            className={`inline-flex items-center px-3 self-stretch border-b-2 -mb-px transition-all ${
               isActive
                 ? "border-orange-500 text-gray-900"
                 : "border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-100"
@@ -33,6 +32,14 @@ export default function PrimaryNav() {
           </Link>
         );
       })}
+
+      <Link
+        href="/submit"
+        prefetch={false}
+        className="ml-2 inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded-full bg-orange-500 text-white font-semibold text-sm hover:bg-orange-600 hover:-translate-y-px active:scale-95 transition-all shadow-sm"
+      >
+        + {t("navSubmit")}
+      </Link>
     </div>
   );
 }

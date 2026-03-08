@@ -192,7 +192,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
   }, [neighborhoodGeoJson]);
 
   return (
-    <div className="relative">
+    <div>
       {/* SVG pattern defs for accessible mode — zero-size, always in DOM.
           Browsers resolve url(#id) document-wide, so Leaflet fills can reference
           these patterns even though they live in a separate <svg> element. */}
@@ -223,41 +223,44 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
         </defs>
       </svg>
 
-      {/* Legend */}
-      <div className="absolute top-4 right-4 z-[1000] bg-white rounded-xl border border-gray-200 p-3 text-xs space-y-1.5 shadow-md">
-        <p className="font-semibold text-gray-500 tracking-wide mb-2 text-[10px]">{t("legendTitle")}</p>
-        {legend.map(({ color, patternId, label }) => (
-          <div key={label} className="flex items-center gap-2">
-            <svg width="14" height="14" className="shrink-0" style={{ borderRadius: 2, overflow: "hidden" }}>
-              <rect
-                width="14" height="14"
-                fill={colorblind && patternId ? `url(#${patternId})` : color}
-              />
-            </svg>
-            <span className="text-gray-600">{label}</span>
-          </div>
-        ))}
-      </div>
+      {/* Inner wrapper — relative context for map overlays only, not the toggle below */}
+      <div className="relative">
 
-      {/* Selection status / hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
-        {selectedNeighborhood ? (
-          <div className="bg-white border border-orange-300 text-orange-500 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md whitespace-nowrap">
-            {selectedNeighborhood}
-            {(() => {
-              const total = selectedBarCount + selectedNoBbCount;
-              return total > 0
-                ? ` · ${selectedBarCount} ${t(selectedBarCount !== 1 ? "barPlural" : "barSingular")}${selectedNoBbCount > 0 ? `, ${selectedNoBbCount} no bb` : ""}`
-                : ` · ${t("noBarsRecorded")}`;
-            })()}
-            <span className="text-gray-400 font-normal ml-1.5">— {t("clickDeselect")}</span>
-          </div>
-        ) : (
-          <div className="bg-white/90 border border-gray-200 text-gray-400 text-xs px-3 py-1.5 rounded-full shadow">
-            {t("clickHint")}
-          </div>
-        )}
-      </div>
+        {/* Legend */}
+        <div className="absolute top-4 right-4 z-[1000] bg-white rounded-xl border border-gray-200 p-3 text-xs space-y-1.5 shadow-md">
+          <p className="font-semibold text-gray-500 tracking-wide mb-2 text-[10px]">{t("legendTitle")}</p>
+          {legend.map(({ color, patternId, label }) => (
+            <div key={label} className="flex items-center gap-2">
+              <svg width="14" height="14" className="shrink-0" style={{ borderRadius: 2, overflow: "hidden" }}>
+                <rect
+                  width="14" height="14"
+                  fill={colorblind && patternId ? `url(#${patternId})` : color}
+                />
+              </svg>
+              <span className="text-gray-600">{label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Selection status / hint — bottom-4 is now relative to the map wrapper only */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+          {selectedNeighborhood ? (
+            <div className="bg-white border border-orange-300 text-orange-500 text-xs font-semibold px-3 py-1.5 rounded-full shadow-md whitespace-nowrap">
+              {selectedNeighborhood}
+              {(() => {
+                const total = selectedBarCount + selectedNoBbCount;
+                return total > 0
+                  ? ` · ${selectedBarCount} ${t(selectedBarCount !== 1 ? "barPlural" : "barSingular")}${selectedNoBbCount > 0 ? `, ${selectedNoBbCount} no bb` : ""}`
+                  : ` · ${t("noBarsRecorded")}`;
+              })()}
+              <span className="text-gray-400 font-normal ml-1.5">— {t("clickDeselect")}</span>
+            </div>
+          ) : (
+            <div className="bg-white/90 border border-gray-200 text-gray-400 text-xs px-3 py-1.5 rounded-full shadow">
+              {t("clickHint")}
+            </div>
+          )}
+        </div>
 
       <MapContainer
         center={[52.373, 4.893]}
@@ -347,10 +350,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
               ? Math.round(bar.latest_price_cents / bar.latest_quantity)
               : undefined;
           const color = getPriceColor(perPieceCents, colorblind);
-          const priceStr =
-            perPieceCents != null
-              ? `€${(perPieceCents / 100).toFixed(2)}/pc`
-              : t("legendNoData");
+          const hasPrice = bar.latest_price_cents != null && bar.latest_quantity != null;
 
           return (
             <CircleMarker
@@ -368,7 +368,15 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
               <Tooltip pane="bar-tooltips" direction="top" offset={[0, -10]} permanent={false}>
                 <strong>{bar.name}</strong>
                 <br />
-                {priceStr}
+                {hasPrice ? (
+                  <>
+                    €{(bar.latest_price_cents! / 100).toFixed(2)} {t("tooltipFor")} {bar.latest_quantity}
+                    {" · "}
+                    <span style={{ color: "#9ca3af" }}>€{(perPieceCents! / 100).toFixed(2)}/pc</span>
+                  </>
+                ) : (
+                  t("legendNoData")
+                )}
               </Tooltip>
             </CircleMarker>
           );
@@ -380,6 +388,8 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
           <p className="text-gray-500">{t("loadingNeighbourhoods")}</p>
         </div>
       )}
+
+      </div>{/* end map wrapper */}
 
       {/* Colorblind mode toggle */}
       <div className="mt-2 flex justify-end">
@@ -405,3 +415,4 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
     </div>
   );
 }
+

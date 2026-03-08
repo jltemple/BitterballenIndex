@@ -58,6 +58,7 @@
     "clickDeselect": "click again to deselect",
     "noDataTooltip": "no data · click to explore",
     "tooltipAvg": "avg",
+    "tooltipFor": "for",
     "loadingNeighbourhoods": "loading neighbourhoods…",
     "perPiece": "per piece"
   },

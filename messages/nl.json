@@ -58,6 +58,7 @@
     "clickDeselect": "klik nogmaals om te deselecteren",
     "noDataTooltip": "geen data · klik om te verkennen",
     "tooltipAvg": "gem.",
+    "tooltipFor": "voor",
     "loadingNeighbourhoods": "buurten laden…",
     "perPiece": "per stuk"
   },
