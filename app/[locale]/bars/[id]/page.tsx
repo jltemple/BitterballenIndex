@@ -80,7 +80,7 @@ export default async function BarDetailPage({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
-  const { id } = await params;
+  const { id, locale } = await params;
   const bar = await getBarWithPrices(id);
 
   if (!bar) notFound();
@@ -123,7 +123,7 @@ export default async function BarDetailPage({
               {t("forQuantity", { price: (latest.price_cents / 100).toFixed(2), quantity: latest.quantity })}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              {t("recordedOn", { date: new Date(latest.recorded_at).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" }) })}
+              {t("recordedOn", { date: new Date(latest.recorded_at).toLocaleDateString(locale === "nl" ? "nl-NL" : "en-GB", { day: "numeric", month: "long", year: "numeric" }) })}
             </p>
           </div>
           <div className="text-5xl opacity-80">🍡</div>
@@ -160,10 +160,10 @@ export default async function BarDetailPage({
                 {[...bar.prices].reverse().map((p) => (
                   <tr key={p.id} className="border-b border-gray-100 last:border-0">
                     <td className="px-4 py-3 text-gray-500">
-                      {new Date(p.recorded_at).toLocaleDateString("nl-NL")}
+                      {new Date(p.recorded_at).toLocaleDateString(locale === "nl" ? "nl-NL" : "en-GB")}
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-orange-500">
-                      €{(p.price_cents / p.quantity / 100).toFixed(2)}/pc
+                      €{(p.price_cents / p.quantity / 100).toFixed(2)}{t("perPieceSuffix")}
                     </td>
                     <td className="px-4 py-3 text-right text-gray-400 hidden sm:table-cell">
                       €{(p.price_cents / 100).toFixed(2)} ×{p.quantity}

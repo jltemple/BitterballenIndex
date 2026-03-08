@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 
 type NominatimResult = {
   place_id: number;
@@ -18,6 +19,8 @@ type NominatimResult = {
 };
 
 export default function SubmitPage() {
+  const t = useTranslations("submit");
+
   const [form, setForm] = useState({
     bar_name: "",
     address: "",
@@ -67,7 +70,7 @@ export default function SubmitPage() {
     const euro = parseFloat(form.price_euro);
     const qty = parseInt(form.quantity || "6", 10);
     if (isNaN(euro) || euro <= 0 || isNaN(qty) || qty <= 0) return null;
-    return `€${(euro / qty).toFixed(2)}/pc`;
+    return `€${(euro / qty).toFixed(2)}${t("perPieceSuffix")}`;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -97,11 +100,11 @@ export default function SubmitPage() {
         setSubmitState("success");
       } else {
         const data = await res.json();
-        setErrorMsg(data.error ?? "Something went wrong. Please try again.");
+        setErrorMsg(data.error ?? t("errorGeneric"));
         setSubmitState("error");
       }
     } catch {
-      setErrorMsg("Network error. Please try again.");
+      setErrorMsg(t("errorNetwork"));
       setSubmitState("error");
     }
   }
@@ -110,10 +113,8 @@ export default function SubmitPage() {
     return (
       <div className="max-w-lg mx-auto text-center py-16 space-y-4">
         <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto text-2xl">✓</div>
-        <h1 className="text-2xl font-bold text-gray-900">thank you!</h1>
-        <p className="text-gray-500">
-          Your submission is under review. We&apos;ll add it to the index once verified.
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900">{t("successTitle")}</h1>
+        <p className="text-gray-500">{t("successMessage")}</p>
         <button
           onClick={() => {
             setForm({ bar_name: "", address: "", lat: "", lng: "", website: "", price_euro: "", quantity: "6", notes: "", _hp: "" });
@@ -121,7 +122,7 @@ export default function SubmitPage() {
           }}
           className="text-sm text-orange-500 hover:underline"
         >
-          submit another venue
+          {t("submitAnother")}
         </button>
       </div>
     );
@@ -132,10 +133,8 @@ export default function SubmitPage() {
   return (
     <div className="max-w-lg mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">submit a venue</h1>
-        <p className="text-gray-500 mt-1 text-sm">
-          Know a bar in Amsterdam that serves bitterballen? Share it here — we&apos;ll verify and add it to the index.
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900">{t("title")}</h1>
+        <p className="text-gray-500 mt-1 text-sm">{t("description")}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-5">
@@ -157,7 +156,7 @@ export default function SubmitPage() {
         {/* Bar name with Nominatim autocomplete */}
         <div className="relative">
           <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">
-            bar name <span className="text-orange-500">*</span>
+            {t("labelBarName")} <span className="text-orange-500">*</span>
           </label>
           <input
             type="text"
@@ -165,7 +164,7 @@ export default function SubmitPage() {
             value={form.bar_name}
             onChange={handleNameChange}
             onBlur={() => setTimeout(() => setSuggestions([]), 150)}
-            placeholder="start typing a bar name…"
+            placeholder={t("placeholderBarName")}
             required
             className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
           />
@@ -187,27 +186,27 @@ export default function SubmitPage() {
 
         <div>
           <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">
-            address <span className="text-orange-500">*</span>
+            {t("labelAddress")} <span className="text-orange-500">*</span>
           </label>
           <input
             type="text"
             name="address"
             value={form.address}
             onChange={handleChange}
-            placeholder="Leidseplein 12, Amsterdam"
+            placeholder={t("placeholderAddress")}
             required
             className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">website</label>
+          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">{t("labelWebsite")}</label>
           <input
             type="url"
             name="website"
             value={form.website}
             onChange={handleChange}
-            placeholder="https://example.com"
+            placeholder={t("placeholderWebsite")}
             className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
           />
         </div>
@@ -215,7 +214,7 @@ export default function SubmitPage() {
         {/* Price */}
         <div>
           <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">
-            price you paid <span className="text-orange-500">*</span>
+            {t("labelPrice")} <span className="text-orange-500">*</span>
           </label>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 flex-1">
@@ -227,12 +226,12 @@ export default function SubmitPage() {
                 onChange={handleChange}
                 min="0.01"
                 step="0.01"
-                placeholder="8.50"
+                placeholder={t("placeholderPrice")}
                 required
                 className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
               />
             </div>
-            <span className="text-gray-400 text-sm">for</span>
+            <span className="text-gray-400 text-sm">{t("inlineFor")}</span>
             <input
               type="number"
               name="quantity"
@@ -240,22 +239,22 @@ export default function SubmitPage() {
               onChange={handleChange}
               min="1"
               step="1"
-              placeholder="6"
+              placeholder={t("placeholderQty")}
               className="w-20 bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
             />
-            <span className="text-gray-400 text-sm">pcs</span>
+            <span className="text-gray-400 text-sm">{t("inlinePcs")}</span>
           </div>
           {pp && <p className="text-xs text-orange-500 font-semibold mt-1.5">{pp}</p>}
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">notes (optional)</label>
+          <label className="block text-xs font-semibold text-gray-500 tracking-wide mb-2">{t("labelNotes")}</label>
           <textarea
             name="notes"
             value={form.notes}
             onChange={handleChange}
             rows={2}
-            placeholder="e.g. happy hour price, only on weekends, etc."
+            placeholder={t("placeholderNotes")}
             className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400 resize-none"
           />
         </div>
@@ -271,7 +270,7 @@ export default function SubmitPage() {
           disabled={submitState === "loading"}
           className="w-full bg-orange-500 text-white py-2.5 rounded-full font-semibold shadow-sm hover:bg-orange-600 hover:-translate-y-px active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
-          {submitState === "loading" ? "submitting…" : "submit venue →"}
+          {submitState === "loading" ? t("submitting") : t("submitButton")}
         </button>
       </form>
     </div>
