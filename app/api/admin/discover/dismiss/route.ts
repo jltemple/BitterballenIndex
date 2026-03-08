@@ -20,21 +20,15 @@ export async function POST(req: Request) {
     .eq("id", id)
     .single();
 
-  const ops: Promise<unknown>[] = [
-    db.from("venue_submissions").update({ status: "dismissed" }).eq("id", id),
-  ];
+  await db.from("venue_submissions").update({ status: "dismissed" }).eq("id", id);
 
   // For automation venues with an OSM id, also record in dismissed_osm_nodes
   // so the populate script skips them on the next run
   if (submission?.osm_id) {
-    ops.push(
-      db
-        .from("dismissed_osm_nodes")
-        .upsert({ osm_id: submission.osm_id }, { onConflict: "osm_id", ignoreDuplicates: true })
-    );
+    await db
+      .from("dismissed_osm_nodes")
+      .upsert({ osm_id: submission.osm_id }, { onConflict: "osm_id", ignoreDuplicates: true });
   }
-
-  await Promise.all(ops);
 
   return NextResponse.json({ ok: true });
 }
