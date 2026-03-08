@@ -27,6 +27,7 @@ export default function SubmitPage() {
     price_euro: "",
     quantity: "6",
     notes: "",
+    _hp: "", // honeypot — must stay empty
   });
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
   const [submitState, setSubmitState] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -83,6 +84,7 @@ export default function SubmitPage() {
       price_euro: form.price_euro ? parseFloat(form.price_euro) : undefined,
       quantity: form.quantity ? parseInt(form.quantity, 10) : undefined,
       notes: form.notes.trim() || undefined,
+      _hp: form._hp,
     };
 
     try {
@@ -114,7 +116,7 @@ export default function SubmitPage() {
         </p>
         <button
           onClick={() => {
-            setForm({ bar_name: "", address: "", lat: "", lng: "", website: "", price_euro: "", quantity: "6", notes: "" });
+            setForm({ bar_name: "", address: "", lat: "", lng: "", website: "", price_euro: "", quantity: "6", notes: "", _hp: "" });
             setSubmitState("idle");
           }}
           className="text-sm text-orange-500 hover:underline"
@@ -137,6 +139,20 @@ export default function SubmitPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-5">
+
+        {/* Honeypot — hidden from humans, bots fill it in */}
+        <div aria-hidden="true" className="absolute -left-[9999px] -top-[9999px] overflow-hidden">
+          <label htmlFor="_hp">leave this empty</label>
+          <input
+            type="text"
+            id="_hp"
+            name="_hp"
+            value={form._hp}
+            onChange={handleChange}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
 
         {/* Bar name with Nominatim autocomplete */}
         <div className="relative">
