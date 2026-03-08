@@ -37,17 +37,12 @@ export async function POST(req: Request) {
   }
 
   // Mark submission as imported + add to dismissed_osm_nodes if it has an OSM id
-  const ops: Promise<unknown>[] = [
-    db.from("venue_submissions").update({ status: "imported" }).eq("id", id),
-  ];
+  await db.from("venue_submissions").update({ status: "imported" }).eq("id", id);
   if (osm_id) {
-    ops.push(
-      db
-        .from("dismissed_osm_nodes")
-        .upsert({ osm_id }, { onConflict: "osm_id", ignoreDuplicates: true })
-    );
+    await db
+      .from("dismissed_osm_nodes")
+      .upsert({ osm_id }, { onConflict: "osm_id", ignoreDuplicates: true });
   }
-  await Promise.all(ops);
 
   for (const locale of ["en", "nl"]) {
     revalidatePath(`/${locale}/bars`);
