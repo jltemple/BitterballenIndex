@@ -110,9 +110,9 @@ export default async function HomePage() {
   const t = await getTranslations("home");
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {/* Hero */}
-      <div className="text-center py-14">
+      <div className="text-center py-8 sm:py-14">
         <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-200 text-orange-600 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
           {t("badge")}
         </div>
