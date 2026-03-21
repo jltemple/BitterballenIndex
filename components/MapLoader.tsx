@@ -25,6 +25,7 @@ interface BarMarker {
   lng: number;
   latest_price_cents: number | null;
   latest_quantity: number | null;
+  latest_recorded_at: string | null;
 }
 
 interface NoBitterballenMarker {

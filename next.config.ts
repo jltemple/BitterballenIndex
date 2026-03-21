@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   transpilePackages: [],
+  allowedDevOrigins: ["192.168.0.16"],
 };
 
 export default withNextIntl(nextConfig);

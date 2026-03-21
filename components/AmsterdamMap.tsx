@@ -21,6 +21,21 @@ interface BarMarker {
   lng: number;
   latest_price_cents: number | null;
   latest_quantity: number | null;
+  latest_recorded_at: string | null;
+}
+
+function relativeTime(iso: string, t: ReturnType<typeof useTranslations<"map">>): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diffMs / 86_400_000);
+  if (days === 0) return t("timeToday");
+  if (days === 1) return t("timeYesterday");
+  if (days < 7) return t("timeDaysAgo", { days });
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return t("timeWeeksAgo", { weeks });
+  const months = Math.floor(days / 30);
+  if (months < 12) return t("timeMonthsAgo", { months });
+  const years = Math.floor(days / 365);
+  return t("timeYearsAgo", { years });
 }
 
 interface NoBitterballenMarker {
@@ -373,6 +388,12 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
                     €{(bar.latest_price_cents! / 100).toFixed(2)} {t("tooltipFor")} {bar.latest_quantity}
                     {" · "}
                     <span style={{ color: "#9ca3af" }}>€{(perPieceCents! / 100).toFixed(2)}/pc</span>
+                    {bar.latest_recorded_at && (
+                      <>
+                        <br />
+                        <span style={{ color: "#9ca3af" }}>{relativeTime(bar.latest_recorded_at, t)}</span>
+                      </>
+                    )}
                   </>
                 ) : (
                   t("legendNoData")

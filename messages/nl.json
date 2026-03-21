@@ -60,7 +60,13 @@
     "tooltipAvg": "gem.",
     "tooltipFor": "voor",
     "loadingNeighbourhoods": "buurten laden…",
-    "perPiece": "per stuk"
+    "perPiece": "per stuk",
+    "timeToday": "vandaag",
+    "timeYesterday": "gisteren",
+    "timeDaysAgo": "{days} dagen geleden",
+    "timeWeeksAgo": "{weeks}w geleden",
+    "timeMonthsAgo": "{months}mnd geleden",
+    "timeYearsAgo": "{years}j geleden"
   },
   "submit": {
     "title": "een café toevoegen",

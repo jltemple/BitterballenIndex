@@ -65,10 +65,10 @@ async function getMapData() {
     .not("lng", "is", null);
 
   // Latest price + quantity per bar
-  const latestByBar = new Map<string, { price_cents: number; quantity: number }>();
+  const latestByBar = new Map<string, { price_cents: number; quantity: number; recorded_at: string }>();
   for (const p of prices ?? []) {
     if (!latestByBar.has(p.bar_id)) {
-      latestByBar.set(p.bar_id, { price_cents: p.price_cents, quantity: p.quantity });
+      latestByBar.set(p.bar_id, { price_cents: p.price_cents, quantity: p.quantity, recorded_at: p.recorded_at });
     }
   }
 
@@ -106,6 +106,7 @@ async function getMapData() {
         lng: bar.lng as number,
         latest_price_cents: latest?.price_cents ?? null,
         latest_quantity: latest?.quantity ?? null,
+        latest_recorded_at: latest?.recorded_at ?? null,
       };
     });
 

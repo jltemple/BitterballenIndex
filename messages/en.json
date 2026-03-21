@@ -60,7 +60,13 @@
     "tooltipAvg": "avg",
     "tooltipFor": "for",
     "loadingNeighbourhoods": "loading neighbourhoods…",
-    "perPiece": "per piece"
+    "perPiece": "per piece",
+    "timeToday": "today",
+    "timeYesterday": "yesterday",
+    "timeDaysAgo": "{days} days ago",
+    "timeWeeksAgo": "{weeks}w ago",
+    "timeMonthsAgo": "{months}mo ago",
+    "timeYearsAgo": "{years}y ago"
   },
   "submit": {
     "title": "submit a venue",
