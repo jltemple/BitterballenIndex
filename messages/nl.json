@@ -16,7 +16,9 @@
     "cityAverage": "stadsgemiddelde",
     "cheapest": "goedkoopste",
     "mostExpensive": "duurste",
-    "noBarsYet": "nog geen cafés in de index. voeg ze toe via het <link>beheerpaneel</link>."
+    "noBarsYet": "nog geen cafés in de index. voeg ze toe via het <link>beheerpaneel</link>.",
+    "for": "voor",
+    "perPieceSuffix": "/st"
   },
   "bars": {
     "title": "alle cafés",
@@ -85,7 +87,11 @@
     "successMessage": "Je inzending wordt beoordeeld. We voegen het toe aan de index zodra het is geverifieerd.",
     "submitAnother": "nog een café toevoegen",
     "errorGeneric": "Er is iets misgegaan. Probeer het opnieuw.",
-    "errorNetwork": "Netwerkfout. Probeer het opnieuw."
+    "errorNetwork": "Netwerkfout. Probeer het opnieuw.",
+    "errorGeocode": "Kon geen coördinaten vinden voor dit adres. Kies uit de suggesties, of controleer het adres.",
+    "geocoding": "adres opzoeken…",
+    "geocodeOk": "adres gevonden ✓",
+    "geocodeFail": "adres niet gevonden — kies uit de suggesties hierboven"
   },
   "admin": {
     "loginTitle": "admin login",

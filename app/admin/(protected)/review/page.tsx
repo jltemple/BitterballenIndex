@@ -204,6 +204,16 @@ export default function ReviewPage() {
                     </div>
                     <p className="text-xs text-gray-400 mt-0.5">
                       {v.address ?? "no address"}{v.amenity ? ` · ${v.amenity}` : ""}
+                      {isCommunity && (
+                        <a
+                          href={`https://www.openstreetmap.org/?mlat=${v.lat}&mlon=${v.lng}#map=17/${v.lat}/${v.lng}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 text-orange-400 hover:underline"
+                        >
+                          verify on map ↗
+                        </a>
+                      )}
                     </p>
 
                   </div>

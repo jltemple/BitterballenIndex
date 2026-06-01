@@ -56,14 +56,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "notes too long (max 1000 chars)" }, { status: 400 });
   }
 
-  // Amsterdam bounds check — only if coords were provided
-  if (lat != null && lng != null) {
-    if (
-      lat < AMSTERDAM_BOUNDS.latMin || lat > AMSTERDAM_BOUNDS.latMax ||
-      lng < AMSTERDAM_BOUNDS.lngMin || lng > AMSTERDAM_BOUNDS.lngMax
-    ) {
-      return NextResponse.json({ error: "Coordinates appear to be outside Amsterdam" }, { status: 400 });
-    }
+  // Coords are required — the form geocodes the address before submitting
+  if (lat == null || lng == null) {
+    return NextResponse.json({ error: "Could not determine coordinates for this address" }, { status: 400 });
+  }
+
+  if (
+    lat < AMSTERDAM_BOUNDS.latMin || lat > AMSTERDAM_BOUNDS.latMax ||
+    lng < AMSTERDAM_BOUNDS.lngMin || lng > AMSTERDAM_BOUNDS.lngMax
+  ) {
+    return NextResponse.json({ error: "Coordinates appear to be outside Amsterdam" }, { status: 400 });
   }
 
   const price_cents = Math.round(price_euro * 100);
@@ -75,8 +77,8 @@ export async function POST(req: Request) {
     .insert({
       name: bar_name.trim(),
       address: address.trim(),
-      lat: lat ?? null,
-      lng: lng ?? null,
+      lat,
+      lng,
       website: website?.trim() || null,
       price_cents,
       quantity: quantity && quantity > 0 ? quantity : 6,
