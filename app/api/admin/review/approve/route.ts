@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase";
 import { neighborhoodFromLatLng } from "@/lib/h3-server";
+import { notifyBarApproved } from "@/lib/discord";
 
 interface ApproveBody {
   id: string;
@@ -54,6 +55,41 @@ export async function POST(req: Request) {
 
   // Mark submission as imported
   await db.from("venue_submissions").update({ status: "imported" }).eq("id", id);
+
+  // Fetch neighbourhood average for Discord context (best-effort, non-blocking)
+  let neighbourhoodAvgCents: number | null = null;
+  if (neighborhood) {
+    const { data: neighbourPrices } = await db
+      .from("bars")
+      .select("id, prices(price_cents, quantity, recorded_at)")
+      .eq("neighborhood", neighborhood)
+      .eq("has_bitterballen", true)
+      .neq("id", bar.id);
+
+    if (neighbourPrices) {
+      const perPieceValues: number[] = [];
+      for (const b of neighbourPrices) {
+        const sorted = (b.prices as { price_cents: number; quantity: number; recorded_at: string }[])
+          .sort((a, z) => z.recorded_at.localeCompare(a.recorded_at));
+        if (sorted[0]) perPieceValues.push(sorted[0].price_cents / sorted[0].quantity);
+      }
+      if (perPieceValues.length > 0) {
+        neighbourhoodAvgCents = Math.round(perPieceValues.reduce((a, b) => a + b, 0) / perPieceValues.length);
+      }
+    }
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bitterballenindex.nl";
+  notifyBarApproved({
+    name,
+    address,
+    neighbourhood: neighborhood,
+    priceCents: Math.round(price_euro * 100),
+    quantity,
+    neighbourhoodAvgCents,
+    barId: bar.id,
+    siteUrl,
+  });
 
   for (const locale of ["en", "nl"]) {
     revalidatePath(`/${locale}/bars`);
