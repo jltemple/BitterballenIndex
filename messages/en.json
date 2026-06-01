@@ -16,7 +16,9 @@
     "cityAverage": "city average",
     "cheapest": "cheapest",
     "mostExpensive": "most expensive",
-    "noBarsYet": "no bars tracked yet. add some via the <link>admin panel</link>."
+    "noBarsYet": "no bars tracked yet. add some via the <link>admin panel</link>.",
+    "for": "for",
+    "perPieceSuffix": "/pc"
   },
   "bars": {
     "title": "all bars",
@@ -91,7 +93,11 @@
     "successMessage": "Your submission is under review. We'll add it to the index once verified.",
     "submitAnother": "submit another venue",
     "errorGeneric": "Something went wrong. Please try again.",
-    "errorNetwork": "Network error. Please try again."
+    "errorNetwork": "Network error. Please try again.",
+    "errorGeocode": "Couldn't find coordinates for that address. Try picking from the autocomplete, or double-check the address.",
+    "geocoding": "locating address…",
+    "geocodeOk": "address located ✓",
+    "geocodeFail": "couldn't locate address — please pick from suggestions above"
   },
   "admin": {
     "loginTitle": "admin login",

@@ -33,12 +33,20 @@ export default function SubmitPage() {
     _hp: "", // honeypot — must stay empty
   });
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
+  const [geocodeState, setGeocodeState] = useState<"idle" | "loading" | "ok" | "fail">("idle");
   const [submitState, setSubmitState] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    // Reset coords if address is manually edited
+    if (name === "address") {
+      setForm((f) => ({ ...f, address: value, lat: "", lng: "" }));
+      setGeocodeState("idle");
+    } else {
+      setForm((f) => ({ ...f, [name]: value }));
+    }
   }
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -63,7 +71,33 @@ export default function SubmitPage() {
     const city = s.address.city ?? s.address.town ?? s.address.village ?? "Amsterdam";
     const address = [road, city].filter(Boolean).join(", ");
     setForm((f) => ({ ...f, bar_name: s.name || f.bar_name, address, lat: s.lat, lng: s.lon }));
+    setGeocodeState("ok");
     setSuggestions([]);
+  }
+
+  async function geocodeAddress(address: string): Promise<{ lat: string; lng: string } | null> {
+    try {
+      const q = encodeURIComponent(address + " amsterdam");
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${q}&format=json&addressdetails=1&limit=1&countrycodes=nl`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const results: NominatimResult[] = await res.json();
+      if (results.length > 0) return { lat: results[0].lat, lng: results[0].lon };
+    } catch { /* fall through */ }
+    return null;
+  }
+
+  async function handleAddressBlur() {
+    if (!form.address.trim() || (form.lat && form.lng)) return;
+    setGeocodeState("loading");
+    const coords = await geocodeAddress(form.address);
+    if (coords) {
+      setForm((f) => ({ ...f, lat: coords.lat, lng: coords.lng }));
+      setGeocodeState("ok");
+    } else {
+      setGeocodeState("fail");
+    }
   }
 
   function perPiece(): string | null {
@@ -78,11 +112,28 @@ export default function SubmitPage() {
     setSubmitState("loading");
     setErrorMsg("");
 
+    let { lat, lng } = form;
+    if ((!lat || !lng) && form.address.trim()) {
+      setGeocodeState("loading");
+      const coords = await geocodeAddress(form.address);
+      if (coords) {
+        lat = coords.lat;
+        lng = coords.lng;
+        setForm((f) => ({ ...f, lat, lng }));
+        setGeocodeState("ok");
+      } else {
+        setGeocodeState("fail");
+        setErrorMsg(t("errorGeocode"));
+        setSubmitState("error");
+        return;
+      }
+    }
+
     const body = {
       bar_name: form.bar_name.trim(),
       address: form.address.trim(),
-      lat: form.lat ? parseFloat(form.lat) : undefined,
-      lng: form.lng ? parseFloat(form.lng) : undefined,
+      lat: lat ? parseFloat(lat) : undefined,
+      lng: lng ? parseFloat(lng) : undefined,
       website: form.website.trim() || undefined,
       price_euro: form.price_euro ? parseFloat(form.price_euro) : undefined,
       quantity: form.quantity ? parseInt(form.quantity, 10) : undefined,
@@ -193,10 +244,20 @@ export default function SubmitPage() {
             name="address"
             value={form.address}
             onChange={handleChange}
+            onBlur={handleAddressBlur}
             placeholder={t("placeholderAddress")}
             required
             className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition placeholder:text-gray-400"
           />
+          {geocodeState === "loading" && (
+            <p className="text-xs text-gray-400 mt-1">{t("geocoding")}</p>
+          )}
+          {geocodeState === "ok" && (
+            <p className="text-xs text-green-600 mt-1">{t("geocodeOk")}</p>
+          )}
+          {geocodeState === "fail" && (
+            <p className="text-xs text-red-500 mt-1">{t("geocodeFail")}</p>
+          )}
         </div>
 
         <div>

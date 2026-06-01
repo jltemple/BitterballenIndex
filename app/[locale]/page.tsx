@@ -53,12 +53,10 @@ import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
 
 async function getStats() {
-  const { data: prices } = await supabase
-    .from("prices")
-    .select("bar_id, price_cents, quantity, recorded_at")
-    .order("recorded_at", { ascending: false });
-
-  const { data: bars } = await supabase.from("bars").select("id, name").eq("has_bitterballen", true);
+  const [{ data: prices }, { data: bars }] = await Promise.all([
+    supabase.from("prices").select("bar_id, price_cents, quantity, recorded_at").order("recorded_at", { ascending: false }),
+    supabase.from("bars").select("id, name").eq("has_bitterballen", true),
+  ]);
 
   if (!prices || !bars) return null;
 
@@ -97,12 +95,12 @@ async function getStats() {
   };
 }
 
-function formatPerPiece(cents: number) {
-  return `€${(cents / 100).toFixed(2)}/pc`;
+function formatPerPiece(cents: number, suffix: string) {
+  return `€${(cents / 100).toFixed(2)}${suffix}`;
 }
 
-function formatTotal(price_cents: number, quantity: number) {
-  return `€${(price_cents / 100).toFixed(2)} for ${quantity}`;
+function formatTotal(price_cents: number, quantity: number, forWord: string) {
+  return `€${(price_cents / 100).toFixed(2)} ${forWord} ${quantity}`;
 }
 
 export default async function HomePage() {
@@ -146,20 +144,20 @@ export default async function HomePage() {
           <StatCard label={t("barsTracked")} value={stats.barCount.toString()} />
           <StatCard
             label={t("cityAverage")}
-            value={stats.cityAvg ? formatPerPiece(stats.cityAvg) : "—"}
-            subValue={stats.cityAvg ? `≈${formatTotal(Math.round(stats.cityAvg * 6), 6)}` : undefined}
+            value={stats.cityAvg ? formatPerPiece(stats.cityAvg, t("perPieceSuffix")) : "—"}
+            subValue={stats.cityAvg ? `≈${formatTotal(Math.round(stats.cityAvg * 6), 6, t("for"))}` : undefined}
           />
           <StatCard
             label={t("cheapest")}
-            value={stats.cheapest ? formatPerPiece(stats.cheapest.per_piece_cents) : "—"}
-            subValue={stats.cheapest ? formatTotal(stats.cheapest.price_cents, stats.cheapest.quantity) : undefined}
+            value={stats.cheapest ? formatPerPiece(stats.cheapest.per_piece_cents, t("perPieceSuffix")) : "—"}
+            subValue={stats.cheapest ? formatTotal(stats.cheapest.price_cents, stats.cheapest.quantity, t("for")) : undefined}
             sub={stats.cheapest?.name}
             href={stats.cheapest ? `/bars/${stats.cheapest.id}` : undefined}
           />
           <StatCard
             label={t("mostExpensive")}
-            value={stats.mostExpensive ? formatPerPiece(stats.mostExpensive.per_piece_cents) : "—"}
-            subValue={stats.mostExpensive ? formatTotal(stats.mostExpensive.price_cents, stats.mostExpensive.quantity) : undefined}
+            value={stats.mostExpensive ? formatPerPiece(stats.mostExpensive.per_piece_cents, t("perPieceSuffix")) : "—"}
+            subValue={stats.mostExpensive ? formatTotal(stats.mostExpensive.price_cents, stats.mostExpensive.quantity, t("for")) : undefined}
             sub={stats.mostExpensive?.name}
             href={stats.mostExpensive ? `/bars/${stats.mostExpensive.id}` : undefined}
           />
