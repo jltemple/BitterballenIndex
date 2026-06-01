@@ -350,7 +350,7 @@ export default function AmsterdamMap({ heatmapData, bars, noBitterballenBars = [
               ? Math.round(bar.latest_price_cents / bar.latest_quantity)
               : undefined;
           const color = getPriceColor(perPieceCents, colorblind);
-          const hasPrice = bar.latest_price_cents != null && bar.latest_quantity != null;
+          const hasPrice = perPieceCents !== undefined;
 
           return (
             <CircleMarker
